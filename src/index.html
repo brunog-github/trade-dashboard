@@ -1,0 +1,185 @@
+<!-- index.html -->
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Painel de Operações - Daytrade</title>
+    <link rel="stylesheet" href="styles.css" />
+    <!-- Chart.js via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <!-- Menu Lateral -->
+    <nav class="sidebar">
+      <!-- Usaremos emojis/caracteres como placeholder de ícones por enquanto -->
+      <div class="nav-item active" title="Dashboard">📊</div>
+      <div
+        class="nav-item"
+        title="Registros (Em breve)"
+        onclick="window.location.href = 'trades.html'"
+      >
+        📋
+      </div>
+      <div class="nav-item" title="Estatísticas">📈</div>
+    </nav>
+
+    <!-- index.html (Trecho do conteúdo principal) -->
+    <main class="main-content">
+      <header class="header">
+        <h1>Painel de Operações</h1>
+        <div
+          class="user-info"
+          id="btnNovaOperacao"
+          style="color: var(--accent-yellow); cursor: pointer"
+        >
+          + Nova Operação
+        </div>
+      </header>
+
+      <div class="page-container">
+        <!-- Cards de Resumo -->
+        <div class="summary-cards">
+          <div class="card">
+            <h3>Resultado do Dia</h3>
+            <p id="res-dia" class="profit">R$ 0,00</p>
+          </div>
+          <div class="card">
+            <h3>Resultado da Semana</h3>
+            <p id="res-semana" class="profit">R$ 0,00</p>
+          </div>
+          <div class="card">
+            <h3>Resultado do Mês</h3>
+            <p id="res-mes" class="profit">R$ 0,00</p>
+          </div>
+        </div>
+
+        <!-- Gráfico de Evolução -->
+        <div class="chart-container">
+          <div class="chart-header">
+            <h3>Curva de Capital (em R$)</h3>
+          </div>
+          <div class="canvas-wrapper">
+            <canvas id="evolutionChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Botão temporário para testar o visual do gráfico e cards -->
+        <button id="btnMockData" class="btn-mock">
+          Adicionar Dados de Teste
+        </button>
+      </div>
+    </main>
+
+    <!-- Modal de Nova Operação -->
+    <div id="tradeModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Registrar Operação</h2>
+          <span class="close-btn" id="closeModal">&times;</span>
+        </div>
+
+        <form id="tradeForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="date">Data</label>
+              <input type="date" id="date" required />
+            </div>
+            <div class="form-group">
+              <label for="time">Hora</label>
+              <input type="time" id="time" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="category">Categoria</label>
+              <select id="category" required>
+                <option value="futuros">Futuros (Ex: WIN, WDO)</option>
+                <option value="acoes">Ações (Ex: PETR4)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="type">Direção</label>
+              <select id="type" required>
+                <option value="Compra">Compra</option>
+                <option value="Venda">Venda</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="ticker">Ativo (Ex: WINV26, ITUB4)</label>
+            <input type="text" id="ticker" placeholder="WINV26" required />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="entryPrice">Preço Entrada</label>
+              <!-- type text para a máscara funcionar -->
+              <input
+                type="text"
+                id="entryPrice"
+                placeholder="R$ 0,00"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="exitPrice">Preço Saída</label>
+              <input
+                type="text"
+                id="exitPrice"
+                placeholder="R$ 0,00"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- Div elegante do cálculo (inicia escondida) -->
+          <div id="resultado_calculo" class="calc-box"></div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="profit">Resultado Bruto (R$)</label>
+              <input type="text" id="profit" placeholder="R$ 0,00" required />
+            </div>
+            <div class="form-group">
+              <label for="costs">Custos (R$)</label>
+              <input type="text" id="costs" placeholder="R$ 0,00" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="reason">Motivo da Entrada</label>
+            <textarea
+              id="reason"
+              rows="2"
+              placeholder="Ex: Rompimento de pivô..."
+              required
+            ></textarea>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-cancel" id="cancelBtn">
+              Cancelar
+            </button>
+            <button type="submit" class="btn-save">Salvar Operação</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Importamos nosso novo script do dashboard -->
+    <script type="module" src="dashboard.js"></script>
+
+    <!-- Script principal como módulo para suportar imports e o TS compilado -->
+    <script type="module">
+      import { db } from "./db.js";
+
+      // Apenas um teste rápido para garantir que o Dexie está rodando
+      db.on("ready", () => {
+        console.log("Banco de dados IndexedDB conectado com sucesso!");
+      });
+    </script>
+  </body>
+</html>
