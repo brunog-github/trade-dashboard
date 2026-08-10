@@ -266,6 +266,8 @@ body {
   background-color: transparent;
   color: var(--text-muted);
   border: 1px solid var(--border-color) !important;
+  border-radius: 6px;
+  padding: 6px;
 }
 
 .btn-cancel:hover {

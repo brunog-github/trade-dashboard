@@ -1,0 +1,106 @@
+/* ================= FILTROS E TABELA (PASSO 4) ================= */
+.history-container {
+  background-color: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  padding: 20px;
+  margin-bottom: 40px;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.filters-group {
+  display: flex;
+  gap: 10px;
+}
+
+.filters-group input,
+.filters-group select {
+  background-color: var(--bg-dark);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 8px 12px;
+  border-radius: 6px;
+  outline: none;
+  font-size: 0.85rem;
+}
+
+/* Estrutura da Tabela */
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.trades-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.trades-table th,
+.trades-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.trades-table th {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+.trades-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* Badges e Ícones da Tabela */
+.badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 0.75rem;
+  display: inline-block;
+  text-align: center;
+  min-width: 50px;
+}
+
+.badge-gain {
+  background-color: rgba(0, 230, 118, 0.1);
+  color: var(--profit-green);
+  border: 1px solid rgba(0, 230, 118, 0.3);
+}
+
+.badge-loss {
+  background-color: rgba(255, 82, 82, 0.1);
+  color: var(--loss-red);
+  border: 1px solid rgba(255, 82, 82, 0.3);
+}
+
+.dir-compra {
+  color: var(--profit-green);
+  font-weight: bold;
+}
+.dir-venda {
+  color: var(--loss-red);
+  font-weight: bold;
+}
+
+/* Botão de Excluir */
+.btn-delete {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+.btn-delete:hover {
+  color: var(--loss-red);
+}

@@ -2,55 +2,149 @@
 import { db } from "./db.js";
 
 let chartInstance = null;
+let todosOsTrades = []; // Variável global para armazenar e filtrar a tabela
+
+// Adicione os listeners para os filtros
+document
+  .getElementById("filterDate")
+  .addEventListener("change", aplicarFiltros);
+document
+  .getElementById("filterTicker")
+  .addEventListener("input", aplicarFiltros);
+document
+  .getElementById("filterType")
+  .addEventListener("change", aplicarFiltros);
+document.getElementById("clearFilters").addEventListener("click", () => {
+  document.getElementById("filterDate").value = "";
+  document.getElementById("filterTicker").value = "";
+  document.getElementById("filterType").value = "";
+  aplicarFiltros();
+});
 
 // Função principal para carregar e calcular os dados
 async function loadDashboardData() {
-  const allTrades = await db.trades.toArray();
+  todosOsTrades = await db.trades.toArray();
 
-  // Calcula o lucro acumulado ao longo do tempo para o gráfico
-  let accumulatedProfit = 0;
-  const chartLabels = [];
-  const chartData = [];
-
-  // Ordena as operações por data e hora
-  allTrades.sort(
+  // Ordena as operações da mais antiga para a mais nova para o Gráfico
+  todosOsTrades.sort(
     (a, b) => new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`),
   );
 
+  let accumulatedProfit = 0;
+  const chartLabels = [];
+  const chartData = [];
   let todayProfit = 0;
   let monthProfit = 0;
   let weekProfit = 0;
 
-  // Datas para filtros simples
   const today = new Date().toISOString().split("T")[0];
-  const currentMonth = today.substring(0, 7); // "YYYY-MM"
-
-  // Cálculo simples de semana (últimos 7 dias para facilitar agora)
+  const currentMonth = today.substring(0, 7);
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   const weekStr = sevenDaysAgo.toISOString().split("T")[0];
 
-  allTrades.forEach((trade) => {
-    // Cálculo de resumos
-    if (trade.date === today) todayProfit += trade.profit;
-    if (trade.date.startsWith(currentMonth)) monthProfit += trade.profit;
-    if (trade.date >= weekStr) weekProfit += trade.profit;
+  todosOsTrades.forEach((trade) => {
+    // P/L Líquido real da operação
+    const lucroLiquido = trade.profit - (trade.costs || 0);
 
-    // Dados do gráfico
-    accumulatedProfit += trade.profit;
-    // Formatando data para DD/MM
+    if (trade.date === today) todayProfit += lucroLiquido;
+    if (trade.date.startsWith(currentMonth)) monthProfit += lucroLiquido;
+    if (trade.date >= weekStr) weekProfit += lucroLiquido;
+
+    accumulatedProfit += lucroLiquido;
     const dateStr = trade.date.split("-").reverse().slice(0, 2).join("/");
     chartLabels.push(dateStr);
     chartData.push(accumulatedProfit);
   });
 
-  // Atualiza a tela
   updateCard("res-dia", todayProfit);
   updateCard("res-semana", weekProfit);
   updateCard("res-mes", monthProfit);
 
   renderChart(chartLabels, chartData);
+
+  // Após calcular o gráfico, renderiza a tabela (Invertendo a ordem para o mais novo aparecer no topo)
+  renderTabela([...todosOsTrades].reverse());
 }
+
+// ========= LÓGICA DA TABELA E FILTROS =========
+
+function aplicarFiltros() {
+  const fData = document.getElementById("filterDate").value;
+  const fTicker = document.getElementById("filterTicker").value.toUpperCase();
+  const fType = document.getElementById("filterType").value;
+
+  let filtrados = [...todosOsTrades].reverse(); // Começa com todos, do mais novo pro mais velho
+
+  if (fData) filtrados = filtrados.filter((t) => t.date === fData);
+  if (fTicker) filtrados = filtrados.filter((t) => t.ticker.includes(fTicker));
+  if (fType) filtrados = filtrados.filter((t) => t.type === fType);
+
+  renderTabela(filtrados);
+}
+
+function renderTabela(trades) {
+  const tbody = document.getElementById("tradesTableBody");
+  tbody.innerHTML = "";
+
+  if (trades.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--text-muted);">Nenhuma operação encontrada com estes filtros.</td></tr>`;
+    return;
+  }
+
+  trades.forEach((trade) => {
+    const lucroLiquido = trade.profit - (trade.costs || 0);
+    const isGain = lucroLiquido >= 0;
+
+    // Formatações Visuais
+    const badge = isGain
+      ? '<span class="badge badge-gain">Gain</span>'
+      : '<span class="badge badge-loss">Loss</span>';
+    const plRealColor = isGain ? "var(--profit-green)" : "var(--loss-red)";
+    const plRealText = lucroLiquido.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
+
+    const dirText =
+      trade.type === "Compra"
+        ? '<span class="dir-compra">▲ C</span>'
+        : '<span class="dir-venda">▼ V</span>';
+    const catText = trade.category === "futuros" ? "Futuros" : "Ações";
+
+    // Formata a data de YYYY-MM-DD para DD/MM/YYYY
+    const dataFormatada = trade.date.split("-").reverse().join("/");
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+            <td>${badge}</td>
+            <td>${dataFormatada} - ${trade.time}</td>
+            <td style="font-weight: bold;">${trade.ticker}</td>
+            <td>${catText}</td>
+            <td>${dirText}</td>
+            <td>${trade.entryPrice.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</td>
+            <td>${trade.exitPrice.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</td>
+            <td style="color: var(--loss-red)">${(trade.costs || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
+            <td style="color: ${plRealColor}; font-weight: bold;">${plRealText}</td>
+            <td>
+                <button class="btn-delete" onclick="deletarTrade(${trade.id})" title="Excluir Operação">🗑️</button>
+            </td>
+        `;
+    tbody.appendChild(tr);
+  });
+}
+
+// Tornar a função de deletar acessível globalmente no HTML
+window.deletarTrade = async (id) => {
+  if (
+    confirm(
+      "Tem certeza que deseja excluir esta operação? Isso alterará os resultados.",
+    )
+  ) {
+    await db.trades.delete(id);
+    loadDashboardData(); // Recarrega tudo
+  }
+};
 
 // Função para formatar moeda e cor
 function updateCard(elementId, value) {
