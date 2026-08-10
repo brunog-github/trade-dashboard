@@ -104,3 +104,17 @@
 .btn-delete:hover {
   color: var(--loss-red);
 }
+
+/* style.css (Adicione no final) */
+.btn-edit {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1.1rem;
+  margin-right: 10px;
+}
+
+.btn-edit:hover {
+  color: var(--accent-yellow);
+}

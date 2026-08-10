@@ -4,6 +4,7 @@ import { calcularEstatisticas } from "./painel.js";
 
 let chartInstance = null;
 let todosOsTrades = []; // Variável global para armazenar e filtrar a tabela
+let operacaoEditandoId = null;
 
 // Adicione os listeners para os filtros
 document
@@ -129,6 +130,7 @@ function renderTabela(trades) {
             <td style="color: var(--loss-red)">${(trade.costs || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
             <td style="color: ${plRealColor}; font-weight: bold;">${plRealText}</td>
             <td>
+                <button class="btn-edit" onclick="editarTrade(${trade.id})" title="Editar Operação">✏️</button>
                 <button class="btn-delete" onclick="deletarTrade(${trade.id})" title="Excluir Operação">🗑️</button>
             </td>
         `;
@@ -165,47 +167,9 @@ function renderChart(labels, data) {
   const ctx = document.getElementById("evolutionChart").getContext("2d");
   if (chartInstance) chartInstance.destroy();
 
-  chartInstance = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: labels,
-      datasets: [
-        {
-          label: "Resultado Acumulado",
-          data: data,
-          borderWidth: 2,
-          fill: false, // Desligamos o fill gradiente para a linha colorida brilhar
-          tension: 0.1,
-          pointRadius: 3,
-          // Mágica das cores dinâmicas:
-          segment: {
-            borderColor: (ctx) =>
-              ctx.p1.parsed.y >= 0 ? "#00e676" : "#ff5252",
-          },
-          pointBackgroundColor: (ctx) => (ctx.raw >= 0 ? "#00e676" : "#ff5252"),
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: {
-          grid: { color: "rgba(255, 255, 255, 0.05)" },
-          ticks: { color: "#8b92a5" },
-        },
-        y: {
-          grid: { color: "rgba(255, 255, 255, 0.05)" },
-          ticks: { color: "#8b92a5" },
-        },
-      },
-    },
-  });
-
   // dashboard.js (Substitua a parte do dataset na função renderChart)
 
-  /** chartInstance = new Chart(ctx, {
+  chartInstance = new Chart(ctx, {
     type: "line",
     data: {
       labels: labels,
@@ -233,7 +197,22 @@ function renderChart(labels, data) {
         },
       ],
     },
-  }); **/
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          grid: { color: "rgba(255, 255, 255, 0.05)" },
+          ticks: { color: "#8b92a5" },
+        },
+        y: {
+          grid: { color: "rgba(255, 255, 255, 0.05)" },
+          ticks: { color: "#8b92a5" },
+        },
+      },
+    },
+  });
   // ... (resto das options continua igual)
 }
 
@@ -307,8 +286,57 @@ function openModal() {
 
 function closeTradeModal() {
   modal.style.display = "none";
-  tradeForm.reset(); // Limpa o formulário
+  tradeForm.reset();
+
+  // Limpa a caixinha de cálculos e as variáveis
+  document.getElementById("resultado_calculo").style.display = "none";
+  document.querySelector(".modal-header h2").innerText = "Registrar Operação"; // Volta o título original
+  operacaoEditandoId = null;
+
+  // Limpa os valores puros salvos nos inputs
+  ["entryPrice", "exitPrice", "profit", "costs"].forEach((id) => {
+    document.getElementById(id).dataset.rawValue = 0;
+  });
 }
+
+window.editarTrade = async (id) => {
+  // Busca a operação na variável global que já temos
+  const trade = todosOsTrades.find((t) => t.id === id);
+  if (!trade) return;
+
+  operacaoEditandoId = id; // Avisa o sistema que é uma edição!
+
+  // Preenche campos simples
+  document.getElementById("date").value = trade.date;
+  document.getElementById("time").value = trade.time;
+  document.getElementById("category").value = trade.category;
+  document.getElementById("ticker").value = trade.ticker;
+  document.getElementById("type").value = trade.type;
+  document.getElementById("reason").value = trade.reason;
+
+  // Função para preencher os valores formatando como Moeda e salvando o valor real
+  const setValorFormatado = (idInput, valorRaw) => {
+    const el = document.getElementById(idInput);
+    el.dataset.rawValue = valorRaw;
+    el.value = valorRaw.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
+  };
+
+  setValorFormatado("entryPrice", trade.entryPrice);
+  setValorFormatado("exitPrice", trade.exitPrice);
+  setValorFormatado("profit", trade.profit);
+  setValorFormatado("costs", trade.costs || 0);
+
+  // Recalcula a caixinha de variação para exibir os pontos/porcentagem corretos
+  calcularVariacao();
+
+  // Muda o título para o usuário saber o que está fazendo
+  document.querySelector(".modal-header h2").innerText = "✏️ Editar Operação";
+
+  modal.style.display = "flex";
+};
 
 btnNovaOperacao.addEventListener("click", openModal);
 closeModal.addEventListener("click", closeTradeModal);
@@ -438,7 +466,14 @@ tradeForm.addEventListener("submit", async (e) => {
   console.log("Tentando salvar operação:", newTrade);
 
   try {
-    await db.trades.add(newTrade);
+    if (operacaoEditandoId) {
+      // Se tiver um ID de edição, nós ATUALIZAMOS
+      await db.trades.update(operacaoEditandoId, newTrade);
+    } else {
+      // Se não tiver, criamos uma NOVA
+      await db.trades.add(newTrade);
+    }
+
     closeTradeModal();
     await loadDashboardData();
 
