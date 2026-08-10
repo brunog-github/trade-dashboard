@@ -1,5 +1,6 @@
 // dashboard.js
 import { db } from "./db.js";
+import { calcularEstatisticas } from "./painel.js";
 
 let chartInstance = null;
 let todosOsTrades = []; // Variável global para armazenar e filtrar a tabela
@@ -65,6 +66,7 @@ async function loadDashboardData() {
 
   // Após calcular o gráfico, renderiza a tabela (Invertendo a ordem para o mais novo aparecer no topo)
   renderTabela([...todosOsTrades].reverse());
+  calcularEstatisticas(todosOsTrades);
 }
 
 // ========= LÓGICA DA TABELA E FILTROS =========
@@ -158,55 +160,6 @@ function updateCard(elementId, value) {
 }
 
 // Função para desenhar o Gráfico da Curva de Capital
-// function renderChart(labels, data) {
-//   const ctx = document.getElementById("evolutionChart").getContext("2d");
-
-//   // Destroi o gráfico anterior se existir (para quando atualizar a página)
-//   if (chartInstance) chartInstance.destroy();
-
-//   // Cria um gradiente verde para ficar parecido com sua imagem
-//   let gradient = ctx.createLinearGradient(0, 0, 0, 350);
-//   gradient.addColorStop(0, "rgba(0, 230, 118, 0.4)"); // Verde translúcido em cima
-//   gradient.addColorStop(1, "rgba(0, 230, 118, 0.0)"); // Transparente embaixo
-
-//   chartInstance = new Chart(ctx, {
-//     type: "line",
-//     data: {
-//       labels: labels,
-//       datasets: [
-//         {
-//           label: "Resultado Acumulado",
-//           data: data,
-//           borderColor: "#00e676",
-//           backgroundColor: gradient,
-//           borderWidth: 2,
-//           fill: true,
-//           tension: 0.3, // Deixa a linha suave/curvada
-//           pointRadius: 2,
-//           pointBackgroundColor: "#ffc107",
-//         },
-//       ],
-//     },
-//     options: {
-//       responsive: true,
-//       maintainAspectRatio: false,
-//       plugins: {
-//         legend: { display: false },
-//       },
-//       scales: {
-//         x: {
-//           grid: { color: "rgba(255, 255, 255, 0.05)" },
-//           ticks: { color: "#8b92a5" },
-//         },
-//         y: {
-//           grid: { color: "rgba(255, 255, 255, 0.05)" },
-//           ticks: { color: "#8b92a5" },
-//         },
-//       },
-//     },
-//   });
-// }
-
 // Substitua a função renderChart inteira por esta:
 function renderChart(labels, data) {
   const ctx = document.getElementById("evolutionChart").getContext("2d");
@@ -249,6 +202,39 @@ function renderChart(labels, data) {
       },
     },
   });
+
+  // dashboard.js (Substitua a parte do dataset na função renderChart)
+
+  /** chartInstance = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Resultado Acumulado",
+          data: data,
+          borderWidth: 2,
+          tension: 0.3, // Aumentei levemente a tensão para a onda ficar mais suave
+          pointRadius: 3,
+
+          // Mágica da cor da linha
+          segment: {
+            borderColor: (ctx) =>
+              ctx.p1.parsed.y >= 0 ? "#00e676" : "#ff5252",
+          },
+          pointBackgroundColor: (ctx) => (ctx.raw >= 0 ? "#00e676" : "#ff5252"),
+
+          // Mágica do preenchimento (A "Onda do Mar")
+          fill: {
+            target: "origin", // Preenche até a linha do zero
+            above: "rgba(0, 230, 118, 0.15)", // Verde translúcido quando positivo
+            below: "rgba(255, 82, 82, 0.15)", // Vermelho translúcido quando negativo
+          },
+        },
+      ],
+    },
+  }); **/
+  // ... (resto das options continua igual)
 }
 
 // --- BOTÃO DE TESTE (Apenas para gerar dados visuais antes do Passo 3) ---

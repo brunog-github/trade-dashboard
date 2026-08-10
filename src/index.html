@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Painel de Operações - Daytrade</title>
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="table.css" />
+    <link rel="stylesheet" href="painel.css" />
     <!-- Chart.js via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
@@ -54,6 +56,49 @@
           </div>
         </div>
 
+        <!-- Seção de Estatísticas Avançadas (Passo 5) -->
+        <div class="stats-grid-container">
+          <h3 class="section-title">Estatísticas Gerais</h3>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span class="stat-title">OPERAÇÕES</span>
+              <span class="stat-value neutral" id="stat-total-ops">0</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-title">TAXA DE ACERTO</span>
+              <span class="stat-value neutral" id="stat-winrate">0.0%</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-title">FATOR LUCRO</span>
+              <span class="stat-value neutral" id="stat-profit-factor"
+                >0.00</span
+              >
+            </div>
+            <div class="stat-card">
+              <span class="stat-title">PAYOFF</span>
+              <span class="stat-value neutral" id="stat-payoff">0.00</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-title">GANHO MÉDIO</span>
+              <span class="stat-value profit" id="stat-avg-win">R$ 0,00</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-title">PERDA MÉDIA</span>
+              <span class="stat-value loss" id="stat-avg-loss">R$ 0,00</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-title">MELHOR TRADE</span>
+              <span class="stat-value profit" id="stat-best-trade"
+                >R$ 0,00</span
+              >
+            </div>
+            <div class="stat-card">
+              <span class="stat-title">PIOR TRADE</span>
+              <span class="stat-value loss" id="stat-worst-trade">R$ 0,00</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Gráfico de Evolução -->
         <div class="chart-container">
           <div class="chart-header">
@@ -61,6 +106,49 @@
           </div>
           <div class="canvas-wrapper">
             <canvas id="evolutionChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Filtros e Histórico de Operações (Passo 4) -->
+        <div class="history-container">
+          <div class="history-header">
+            <h3>Histórico de Operações</h3>
+            <div class="filters-group">
+              <input type="date" id="filterDate" title="Filtrar por Data" />
+              <input
+                type="text"
+                id="filterTicker"
+                placeholder="Ativo (Ex: WIN)"
+              />
+              <select id="filterType">
+                <option value="">Todas Modalidades</option>
+                <option value="Compra">Compra</option>
+                <option value="Venda">Venda</option>
+              </select>
+              <button id="clearFilters" class="btn-cancel">Limpar</button>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table class="trades-table">
+              <thead>
+                <tr>
+                  <th>STATUS</th>
+                  <th>DATA / HORA</th>
+                  <th>ATIVO</th>
+                  <th>CAT.</th>
+                  <th>DIR.</th>
+                  <th>ENTRADA</th>
+                  <th>SAÍDA</th>
+                  <th>CUSTOS</th>
+                  <th>P/L REAL</th>
+                  <th>AÇÕES</th>
+                </tr>
+              </thead>
+              <tbody id="tradesTableBody">
+                <!-- As linhas serão injetadas aqui pelo JS -->
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -170,6 +258,7 @@
     </div>
 
     <!-- Importamos nosso novo script do dashboard -->
+    <script type="module" src="painel.js"></script>
     <script type="module" src="dashboard.js"></script>
 
     <!-- Script principal como módulo para suportar imports e o TS compilado -->

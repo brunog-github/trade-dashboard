@@ -1,0 +1,47 @@
+/* ================= ESTATÍSTICAS AVANÇADAS (PASSO 5) ================= */
+.stats-grid-container {
+  margin-bottom: 30px;
+}
+
+.section-title {
+  font-size: 1rem;
+  color: var(--text-main);
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.stats-grid {
+  display: grid;
+  /* Cria colunas automáticas com no mínimo 180px de largura */
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+}
+
+.stat-card {
+  background-color: var(--bg-card);
+  padding: 18px 15px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.stat-title {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
