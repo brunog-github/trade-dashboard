@@ -50,18 +50,30 @@
 
       <div class="page-container">
         <!-- Cards de Resumo -->
+        <!-- Controles de Período do Dashboard -->
+        <div class="dashboard-controls" style="margin-bottom: 20px">
+          <select
+            id="monthSelector"
+            class="month-selector"
+            title="Selecione o mês para análise"
+          >
+            <!-- As opções serão injetadas pelo JS -->
+          </select>
+        </div>
+
+        <!-- Cards de Resumo (Dinâmicos) -->
         <div class="summary-cards">
           <div class="card">
-            <h3>Resultado do Dia</h3>
-            <p id="res-dia" class="profit">R$ 0,00</p>
+            <h3 id="titulo-card-1">Resultado do Dia</h3>
+            <p id="res-card-1" class="neutral">R$ 0,00</p>
           </div>
           <div class="card">
-            <h3>Resultado da Semana</h3>
-            <p id="res-semana" class="profit">R$ 0,00</p>
+            <h3 id="titulo-card-2">Resultado da Semana</h3>
+            <p id="res-card-2" class="neutral">R$ 0,00</p>
           </div>
           <div class="card">
             <h3>Resultado do Mês</h3>
-            <p id="res-mes" class="profit">R$ 0,00</p>
+            <p id="res-mes" class="neutral">R$ 0,00</p>
           </div>
         </div>
 

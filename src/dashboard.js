@@ -93,50 +93,175 @@ if (inputEnd) inputEnd.max = dataDeHoje;
 if (inputFormDate) inputFormDate.max = dataDeHoje; // Impede salvar trades no futuro também!
 
 // Função principal para carregar e calcular os dados
+// Variável para guardar o mês selecionado atualmente (começa com o mês atual YYYY-MM)
+let mesVisualizado = new Date().toISOString().substring(0, 7);
+
+// Listener para quando o usuário trocar o mês no seletor
+document.getElementById("monthSelector").addEventListener("change", (e) => {
+  mesVisualizado = e.target.value;
+  atualizarDashboardVisuais();
+});
+
 async function loadDashboardData() {
   todosOsTrades = await db.trades.toArray();
-
-  // Ordena as operações da mais antiga para a mais nova para o Gráfico
   todosOsTrades.sort(
     (a, b) => new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`),
   );
 
+  atualizarOpcoesMes();
+  atualizarDashboardVisuais();
+
+  // A tabela de histórico continua independente com seus próprios filtros
+  aplicarFiltros();
+}
+
+// 1. Vasculha o banco, acha os meses operados e preenche o Seletor
+function atualizarOpcoesMes() {
+  const select = document.getElementById("monthSelector");
+  const monthNames = [
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
+  ];
+
+  // Extrai "YYYY-MM" únicos de todas as operações
+  const uniqueMonths = new Set(
+    todosOsTrades.map((t) => t.date.substring(0, 7)),
+  );
+
+  // Garante que o mês atual sempre exista na lista, mesmo se não tiver operações ainda
+  const mesAtual = new Date().toISOString().substring(0, 7);
+  uniqueMonths.add(mesAtual);
+
+  // Ordena do mais recente para o mais antigo
+  const sortedMonths = Array.from(uniqueMonths).sort((a, b) =>
+    b.localeCompare(a),
+  );
+
+  select.innerHTML = "";
+  sortedMonths.forEach((m) => {
+    const [ano, mes] = m.split("-");
+    const option = document.createElement("option");
+    option.value = m;
+    option.textContent = `${monthNames[parseInt(mes) - 1]} ${ano}`;
+    select.appendChild(option);
+  });
+
+  // Mantém selecionado o mês que o usuário estava vendo, ou joga pro atual
+  if (uniqueMonths.has(mesVisualizado)) {
+    select.value = mesVisualizado;
+  } else {
+    select.value = sortedMonths[0];
+    mesVisualizado = sortedMonths[0];
+  }
+}
+
+// Função auxiliar para calcular em qual semana do ano cai uma data (para agrupar a "Melhor Semana")
+function getWeekNumber(dateString) {
+  const [ano, mes, dia] = dateString.split("-");
+  const date = new Date(ano, mes - 1, dia);
+  date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  return Math.ceil(((date - yearStart) / 86400000 + 1) / 7);
+}
+
+// 2. Atualiza Cards, Gráfico e Estatísticas baseado no mês selecionado
+// 2. Atualiza Cards, Gráfico e Estatísticas baseado no mês selecionado
+function atualizarDashboardVisuais() {
+  // Descobre qual é o mês e ano em que estamos hoje no mundo real
+  const mesAtualReal = new Date().toISOString().substring(0, 7);
+  const isMesAtual = mesVisualizado === mesAtualReal;
+
+  // Filtra as operações do mês selecionado
+  const tradesDoMes = todosOsTrades.filter((t) =>
+    t.date.startsWith(mesVisualizado),
+  );
+
+  let resultadoMes = 0;
   let accumulatedProfit = 0;
   const chartLabels = [];
   const chartData = [];
-  let todayProfit = 0;
-  let monthProfit = 0;
-  let weekProfit = 0;
 
-  const today = new Date().toISOString().split("T")[0];
-  const currentMonth = today.substring(0, 7);
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-  const weekStr = sevenDaysAgo.toISOString().split("T")[0];
+  // Variáveis para calcular recordes (usadas se for mês passado)
+  const dias = {};
+  const semanas = {};
 
-  todosOsTrades.forEach((trade) => {
-    // P/L Líquido real da operação
-    const lucroLiquido = trade.profit - (trade.costs || 0);
+  tradesDoMes.forEach((trade) => {
+    const p = trade.profit - (trade.costs || 0);
 
-    if (trade.date === today) todayProfit += lucroLiquido;
-    if (trade.date.startsWith(currentMonth)) monthProfit += lucroLiquido;
-    if (trade.date >= weekStr) weekProfit += lucroLiquido;
+    resultadoMes += p;
 
-    accumulatedProfit += lucroLiquido;
+    // Agrupa por dia e semana
+    dias[trade.date] = (dias[trade.date] || 0) + p;
+    const semanaNum = getWeekNumber(trade.date);
+    semanas[semanaNum] = (semanas[semanaNum] || 0) + p;
+
+    // Dados do Gráfico
+    accumulatedProfit += p;
     const dateStr = trade.date.split("-").reverse().slice(0, 2).join("/");
     chartLabels.push(dateStr);
     chartData.push(accumulatedProfit);
   });
 
-  updateCard("res-dia", todayProfit);
-  updateCard("res-semana", weekProfit);
-  updateCard("res-mes", monthProfit);
+  // Pega os elementos de título dos cards no HTML
+  const tituloCard1 = document.getElementById("titulo-card-1");
+  const tituloCard2 = document.getElementById("titulo-card-2");
 
+  if (isMesAtual) {
+    // ---- MODO: MÊS ATUAL ----
+    tituloCard1.innerText = "Resultado do Dia";
+    tituloCard2.innerText = "Resultado da Semana";
+
+    let todayProfit = 0;
+    let weekProfit = 0;
+    const todayStr = new Date().toISOString().split("T")[0];
+
+    // Calcula os últimos 7 dias
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const weekStr = sevenDaysAgo.toISOString().split("T")[0];
+
+    // Varre TODOS os trades (para garantir que uma semana pegue dias do fim do mês passado, se necessário)
+    todosOsTrades.forEach((t) => {
+      const p = t.profit - (t.costs || 0);
+      if (t.date === todayStr) todayProfit += p;
+      if (t.date >= weekStr) weekProfit += p;
+    });
+
+    updateCard("res-card-1", todayProfit);
+    updateCard("res-card-2", weekProfit);
+  } else {
+    // ---- MODO: MESES ANTERIORES ----
+    tituloCard1.innerText = "Melhor Dia";
+    tituloCard2.innerText = "Melhor Semana";
+
+    const arrayDias = Object.values(dias);
+    const arraySemanas = Object.values(semanas);
+
+    // Encontra o máximo (Se não houver trades no mês, fica 0)
+    const melhorDia = arrayDias.length > 0 ? Math.max(...arrayDias) : 0;
+    const melhorSemana =
+      arraySemanas.length > 0 ? Math.max(...arraySemanas) : 0;
+
+    updateCard("res-card-1", melhorDia);
+    updateCard("res-card-2", melhorSemana);
+  }
+
+  // Atualiza o resultado total do mês (este card nunca muda de função)
+  updateCard("res-mes", resultadoMes);
+
+  // Atualiza o Gráfico e as Estatísticas apenas com os dados do mês
   renderChart(chartLabels, chartData);
-
-  // Após calcular o gráfico, renderiza a tabela (Invertendo a ordem para o mais novo aparecer no topo)
-  renderTabela([...todosOsTrades].reverse());
-  calcularEstatisticas(todosOsTrades);
+  calcularEstatisticas(tradesDoMes);
 }
 
 // ========= LÓGICA DA TABELA E FILTROS =========
