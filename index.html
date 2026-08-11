@@ -22,7 +22,7 @@
 
     <!-- index.html (Trecho do conteúdo principal) -->
     <main class="main-content">
-      <header class="header">
+      <!-- <header class="header">
         <h1>Painel de Operações</h1>
         <div
           class="user-info"
@@ -30,6 +30,21 @@
           style="color: var(--accent-yellow); cursor: pointer"
         >
           + Nova Operação
+        </div>
+      </header> -->
+
+      <!-- Header Elegante -->
+      <header class="top-header">
+        <div class="logo-container">
+          <span class="logo-text"
+            >Trading<span class="logo-accent">Dashboard</span></span
+          >
+        </div>
+        <div class="user-profile">
+          <!-- Espaço reservado para futuro perfil/configurações -->
+          <span style="color: var(--text-muted); font-size: 0.9rem"
+            >Olá, Trader</span
+          >
         </div>
       </header>
 
@@ -107,26 +122,58 @@
         <div class="history-container">
           <div class="history-header">
             <h3>Histórico de Operações</h3>
-            <div class="filters-group">
-              <!-- Filtro Range de Datas -->
-              <input type="date" id="filterDateStart" title="Data Inicial" />
-              <span style="color: var(--text-muted); align-self: center"
-                >até</span
-              >
-              <input type="date" id="filterDateEnd" title="Data Final" />
+            <button id="btnDeleteAll" class="btn-delete-all">
+              ⚠️ Excluir Tudo
+            </button>
+          </div>
 
-              <input
-                type="text"
-                id="filterTicker"
-                placeholder="Ativo (Ex: WIN)"
-              />
-              <select id="filterType">
-                <option value="">Todas Modalidades</option>
-                <option value="Compra">Compra</option>
-                <option value="Venda">Venda</option>
-              </select>
-              <button id="clearFilters" class="btn-cancel">Limpar</button>
-            </div>
+          <div
+            class="filters-group"
+            style="margin-bottom: 20px; flex-wrap: wrap"
+          >
+            <!-- Datas com onclick para abrir o calendário ao clicar na caixa -->
+            <input
+              type="date"
+              id="filterDateStart"
+              title="Data Inicial"
+              onclick="this.showPicker()"
+            />
+            <span style="color: var(--text-muted); align-self: center"
+              >até</span
+            >
+            <input
+              type="date"
+              id="filterDateEnd"
+              title="Data Final"
+              onclick="this.showPicker()"
+            />
+
+            <input
+              type="text"
+              id="filterTicker"
+              placeholder="Ativo (Ex: WIN)"
+            />
+
+            <!-- Novos Filtros -->
+            <select id="filterCategory">
+              <option value="">Todas Categorias</option>
+              <option value="futuros">Futuros</option>
+              <option value="acoes">Ações</option>
+            </select>
+
+            <select id="filterResult">
+              <option value="">Todos Resultados</option>
+              <option value="Gain">Apenas Gain</option>
+              <option value="Loss">Apenas Loss</option>
+            </select>
+
+            <select id="filterType">
+              <option value="">Todas Modalidades</option>
+              <option value="Compra">Compra</option>
+              <option value="Venda">Venda</option>
+            </select>
+
+            <button id="clearFilters" class="btn-cancel">Limpar Filtros</button>
           </div>
 
           <div class="table-wrapper">
@@ -169,11 +216,6 @@
             <!-- Botões gerados via JS -->
           </div>
         </div>
-
-        <!-- Botão temporário para testar o visual do gráfico e cards -->
-        <button id="btnMockData" class="btn-mock">
-          Adicionar Dados de Teste
-        </button>
       </div>
     </main>
 
@@ -288,5 +330,10 @@
         console.log("Banco de dados IndexedDB conectado com sucesso!");
       });
     </script>
+
+    <!-- Botão Flutuante para Nova Operação -->
+    <button id="btnFloatingAdd" class="floating-btn" title="Nova Operação">
+      ➕
+    </button>
   </body>
 </html>

@@ -29,14 +29,41 @@ document.getElementById("filterType").addEventListener("change", () => {
   paginaAtual = 1;
   aplicarFiltros();
 });
+document.getElementById("filterCategory").addEventListener("change", () => {
+  paginaAtual = 1;
+  aplicarFiltros();
+}); // NOVO
+document.getElementById("filterResult").addEventListener("change", () => {
+  paginaAtual = 1;
+  aplicarFiltros();
+}); // NOVO
 
 document.getElementById("clearFilters").addEventListener("click", () => {
   document.getElementById("filterDateStart").value = "";
   document.getElementById("filterDateEnd").value = "";
   document.getElementById("filterTicker").value = "";
   document.getElementById("filterType").value = "";
+  document.getElementById("filterCategory").value = ""; // NOVO
+  document.getElementById("filterResult").value = ""; // NOVO
   paginaAtual = 1;
   aplicarFiltros();
+});
+
+// FUNÇÃO EXCLUIR TUDO
+document.getElementById("btnDeleteAll").addEventListener("click", async () => {
+  if (todosOsTrades.length === 0) {
+    alert("Não há operações para excluir.");
+    return;
+  }
+
+  const confirmacao = confirm(
+    "CUIDADO! Tem certeza que deseja apagar TODO o seu histórico de operações? Esta ação não pode ser desfeita.",
+  );
+
+  if (confirmacao) {
+    await db.trades.clear(); // Limpa o banco de dados inteiro!
+    loadDashboardData(); // Recarrega a página zerada
+  }
 });
 
 // Event Listeners de Ordenação nas Colunas (TH)
@@ -53,6 +80,17 @@ document.querySelectorAll("th.sortable").forEach((th) => {
     aplicarFiltros();
   });
 });
+
+// BLOQUEAR DATAS FUTURAS (Executado assim que o script carrega)
+const inputStart = document.getElementById("filterDateStart");
+const inputEnd = document.getElementById("filterDateEnd");
+const inputFormDate = document.getElementById("date"); // O input de data do Modal de registro
+
+const dataDeHoje = new Date().toISOString().split("T")[0];
+
+if (inputStart) inputStart.max = dataDeHoje;
+if (inputEnd) inputEnd.max = dataDeHoje;
+if (inputFormDate) inputFormDate.max = dataDeHoje; // Impede salvar trades no futuro também!
 
 // Função principal para carregar e calcular os dados
 async function loadDashboardData() {
@@ -110,6 +148,12 @@ function aplicarFiltros() {
   const fTicker = document.getElementById("filterTicker").value.toUpperCase();
   const fType = document.getElementById("filterType").value;
 
+  // Captura os novos filtros
+  const fCategory = document.getElementById("filterCategory").value;
+  const fResult = document.getElementById("filterResult").value;
+
+  console.log("Aplicando filtros:", fCategory);
+
   let filtrados = [...todosOsTrades];
 
   // 1. Aplica o Filtro Range de Datas
@@ -119,6 +163,19 @@ function aplicarFiltros() {
   // 2. Outros Filtros
   if (fTicker) filtrados = filtrados.filter((t) => t.ticker.includes(fTicker));
   if (fType) filtrados = filtrados.filter((t) => t.type === fType);
+
+  // Aplica o filtro de Categoria
+  if (fCategory) filtrados = filtrados.filter((t) => t.category === fCategory);
+
+  // Aplica o filtro de Resultado (Gain/Loss)
+  if (fResult) {
+    filtrados = filtrados.filter((t) => {
+      const lucroLiquido = t.profit - (t.costs || 0);
+      if (fResult === "Gain") return lucroLiquido >= 0;
+      if (fResult === "Loss") return lucroLiquido < 0;
+      return true;
+    });
+  }
 
   // 3. Ordenação Dinâmica
   filtrados.sort((a, b) => {
@@ -327,54 +384,6 @@ function renderChart(labels, data) {
   // ... (resto das options continua igual)
 }
 
-// --- BOTÃO DE TESTE (Apenas para gerar dados visuais antes do Passo 3) ---
-document.getElementById("btnMockData").addEventListener("click", async () => {
-  const todayDate = new Date().toISOString().split("T")[0];
-  await db.trades.bulkAdd([
-    {
-      date: "2026-08-13",
-      time: "10:00",
-      ticker: "WINQ26",
-      type: "Compra",
-      entryPrice: 110000,
-      exitPrice: 110200,
-      reason: "Pivot",
-      profit: -40,
-    },
-    {
-      date: "2026-08-12",
-      time: "11:30",
-      ticker: "WDOU26",
-      type: "Venda",
-      entryPrice: 5200,
-      exitPrice: 5190,
-      reason: "Suporte",
-      profit: 100,
-    },
-    {
-      date: "2026-08-06",
-      time: "09:45",
-      ticker: "WINQ26",
-      type: "Compra",
-      entryPrice: 112000,
-      exitPrice: 111900,
-      reason: "Rompimento Falso",
-      profit: -200,
-    },
-    {
-      date: todayDate,
-      time: "14:20",
-      ticker: "PETR4",
-      type: "Compra",
-      entryPrice: 30.5,
-      exitPrice: 31.0,
-      reason: "Notícia",
-      profit: 50,
-    },
-  ]);
-  loadDashboardData();
-});
-
 // Carrega os dados assim que a página abre
 loadDashboardData();
 
@@ -382,7 +391,6 @@ loadDashboardData();
 
 // Elementos do Modal
 const modal = document.getElementById("tradeModal");
-const btnNovaOperacao = document.getElementById("btnNovaOperacao");
 const closeModal = document.getElementById("closeModal");
 const cancelBtn = document.getElementById("cancelBtn");
 const tradeForm = document.getElementById("tradeForm");
@@ -449,7 +457,19 @@ window.editarTrade = async (id) => {
   modal.style.display = "flex";
 };
 
-btnNovaOperacao.addEventListener("click", openModal);
+// ================= BOTÃO FLUTUANTE (ABRIR MODAL) =================
+document.getElementById("btnFloatingAdd").addEventListener("click", () => {
+  // Reseta variáveis caso o usuário tenha clicado em "Editar" antes e cancelado
+  operacaoEditandoId = null;
+  document.querySelector(".modal-header h2").innerText = "Registrar Operação";
+
+  // Abre o modal
+  const modal = document.getElementById("tradeModal");
+  if (modal) {
+    modal.style.display = "flex";
+  }
+});
+
 closeModal.addEventListener("click", closeTradeModal);
 cancelBtn.addEventListener("click", closeTradeModal);
 

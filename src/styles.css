@@ -23,6 +23,13 @@ body {
   display: flex;
   height: 100vh;
   overflow: hidden;
+  -ms-overflow-style: none; /* Remove rolagem vertical no IE e Edge antigo */
+  scrollbar-width: none; /* Remove rolagem vertical no Firefox */
+}
+
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
 }
 
 /* Sidebar inspirada na imagem */
@@ -64,7 +71,7 @@ body {
 }
 
 /* Cabeçalho */
-.header {
+/* .header {
   height: 60px;
   display: flex;
   justify-content: space-between;
@@ -76,6 +83,35 @@ body {
 .header h1 {
   font-size: 1.2rem;
   font-weight: 600;
+} */
+
+/* Novo Header Elegante */
+.top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-card) 100%);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  margin-bottom: 30px;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: 0.5px;
+}
+
+.logo-accent {
+  color: var(--accent-yellow);
 }
 
 /* Container de conteúdo das páginas */

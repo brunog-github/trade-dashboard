@@ -118,3 +118,61 @@
 .btn-edit:hover {
   color: var(--accent-yellow);
 }
+
+/* Ajuste do ícone do Calendário (Branco e Clicável) */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1); /* Deixa o ícone de calendário branco */
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Botão de Excluir Tudo */
+.btn-delete-all {
+  background-color: rgba(255, 82, 82, 0.1);
+  color: var(--loss-red);
+  border: 1px solid rgba(255, 82, 82, 0.3);
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.btn-delete-all:hover {
+  background-color: var(--loss-red);
+  color: #fff;
+}
+
+/* ================= BOTÃO FLUTUANTE (FAB) ================= */
+.floating-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 40px;
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  background-color: var(--accent-yellow);
+  color: #121212; /* Cor escura para contrastar com o amarelo */
+  font-size: 2rem;
+  font-weight: bold;
+  border: none;
+  box-shadow: 0 4px 15px rgba(255, 213, 79, 0.4);
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.floating-btn:hover {
+  transform: scale(1.1); /* Efeito de crescer ao passar o mouse */
+  box-shadow: 0 6px 20px rgba(255, 213, 79, 0.7);
+}
