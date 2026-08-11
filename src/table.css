@@ -130,6 +130,17 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
 }
 
+/* Ajuste do ícone do Calendário (Branco e Clicável) */
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1); /* Deixa o ícone de calendário branco */
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
 /* Botão de Excluir Tudo */
 .btn-delete-all {
   background-color: rgba(255, 82, 82, 0.1);

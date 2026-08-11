@@ -270,7 +270,13 @@
 
           <div class="form-group">
             <label for="ticker">Ativo (Ex: WINV26, ITUB4)</label>
-            <input type="text" id="ticker" placeholder="WINV26" required />
+            <input
+              style="text-transform: uppercase"
+              type="text"
+              id="ticker"
+              placeholder="WINV26"
+              required
+            />
           </div>
 
           <div class="form-row">
@@ -312,10 +318,10 @@
           <div class="form-group">
             <label for="reason">Motivo da Entrada</label>
             <textarea
+              style="resize: none"
               id="reason"
               rows="2"
               placeholder="Ex: Rompimento de pivô..."
-              required
             ></textarea>
           </div>
 
