@@ -1,0 +1,53 @@
+/* ================= ORDENAÇÃO E PAGINAÇÃO (PASSO 6) ================= */
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.2s;
+}
+
+.sortable:hover {
+  color: var(--text-main) !important;
+}
+
+.sort-icon {
+  font-size: 0.8rem;
+  margin-left: 4px;
+  color: var(--accent-yellow);
+}
+
+/* Container da Paginação */
+.pagination-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 15px;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid var(--border-color);
+}
+
+.pagination-info {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.btn-page {
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: 0.2s;
+}
+
+.btn-page:hover:not(:disabled) {
+  background-color: var(--bg-card);
+  border-color: var(--accent-yellow);
+}
+
+.btn-page:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -6,21 +6,52 @@ let chartInstance = null;
 let todosOsTrades = []; // Variável global para armazenar e filtrar a tabela
 let operacaoEditandoId = null;
 
-// Adicione os listeners para os filtros
-document
-  .getElementById("filterDate")
-  .addEventListener("change", aplicarFiltros);
-document
-  .getElementById("filterTicker")
-  .addEventListener("input", aplicarFiltros);
-document
-  .getElementById("filterType")
-  .addEventListener("change", aplicarFiltros);
+// Variáveis de Controle
+let paginaAtual = 1;
+const itensPorPagina = 10;
+let colunaOrdenacao = "date"; // Ordenação padrão
+let ordemAscendente = false; // False = do mais novo pro mais velho
+
+// Novos Event Listeners dos Filtros
+document.getElementById("filterDateStart").addEventListener("change", () => {
+  paginaAtual = 1;
+  aplicarFiltros();
+});
+document.getElementById("filterDateEnd").addEventListener("change", () => {
+  paginaAtual = 1;
+  aplicarFiltros();
+});
+document.getElementById("filterTicker").addEventListener("input", () => {
+  paginaAtual = 1;
+  aplicarFiltros();
+});
+document.getElementById("filterType").addEventListener("change", () => {
+  paginaAtual = 1;
+  aplicarFiltros();
+});
+
 document.getElementById("clearFilters").addEventListener("click", () => {
-  document.getElementById("filterDate").value = "";
+  document.getElementById("filterDateStart").value = "";
+  document.getElementById("filterDateEnd").value = "";
   document.getElementById("filterTicker").value = "";
   document.getElementById("filterType").value = "";
+  paginaAtual = 1;
   aplicarFiltros();
+});
+
+// Event Listeners de Ordenação nas Colunas (TH)
+document.querySelectorAll("th.sortable").forEach((th) => {
+  th.addEventListener("click", () => {
+    const colunaClicada = th.dataset.sort;
+    if (colunaOrdenacao === colunaClicada) {
+      ordemAscendente = !ordemAscendente; // Inverte a ordem se clicar na mesma
+    } else {
+      colunaOrdenacao = colunaClicada;
+      ordemAscendente = true; // Se for coluna nova, começa ascendente
+    }
+    paginaAtual = 1; // Volta pra primeira página
+    aplicarFiltros();
+  });
 });
 
 // Função principal para carregar e calcular os dados
@@ -71,18 +102,59 @@ async function loadDashboardData() {
 }
 
 // ========= LÓGICA DA TABELA E FILTROS =========
+// ================= TABELA, FILTROS E PAGINAÇÃO (PASSO 6) =================
 
 function aplicarFiltros() {
-  const fData = document.getElementById("filterDate").value;
+  const start = document.getElementById("filterDateStart").value;
+  const end = document.getElementById("filterDateEnd").value;
   const fTicker = document.getElementById("filterTicker").value.toUpperCase();
   const fType = document.getElementById("filterType").value;
 
-  let filtrados = [...todosOsTrades].reverse(); // Começa com todos, do mais novo pro mais velho
+  let filtrados = [...todosOsTrades];
 
-  if (fData) filtrados = filtrados.filter((t) => t.date === fData);
+  // 1. Aplica o Filtro Range de Datas
+  if (start) filtrados = filtrados.filter((t) => t.date >= start);
+  if (end) filtrados = filtrados.filter((t) => t.date <= end);
+
+  // 2. Outros Filtros
   if (fTicker) filtrados = filtrados.filter((t) => t.ticker.includes(fTicker));
   if (fType) filtrados = filtrados.filter((t) => t.type === fType);
 
+  // 3. Ordenação Dinâmica
+  filtrados.sort((a, b) => {
+    let valA, valB;
+
+    // Trata cada coluna de forma especial
+    if (colunaOrdenacao === "date") {
+      valA = new Date(`${a.date}T${a.time}`);
+      valB = new Date(`${b.date}T${b.time}`);
+    } else if (colunaOrdenacao === "profit") {
+      valA = a.profit - (a.costs || 0);
+      valB = b.profit - (b.costs || 0);
+    } else if (colunaOrdenacao === "status") {
+      valA = a.profit - (a.costs || 0) >= 0 ? 1 : -1;
+      valB = b.profit - (b.costs || 0) >= 0 ? 1 : -1;
+    } else {
+      // Categoria, Ticker, Tipo
+      valA = a[colunaOrdenacao];
+      valB = b[colunaOrdenacao];
+    }
+
+    if (valA < valB) return ordemAscendente ? -1 : 1;
+    if (valA > valB) return ordemAscendente ? 1 : -1;
+    return 0;
+  });
+
+  // Atualiza visualmente as setinhas no HTML
+  document
+    .querySelectorAll("th.sortable .sort-icon")
+    .forEach((icon) => (icon.innerText = ""));
+  const thAtivo = document.querySelector(
+    `th[data-sort="${colunaOrdenacao}"] .sort-icon`,
+  );
+  if (thAtivo) thAtivo.innerText = ordemAscendente ? "▲" : "▼";
+
+  // 4. Manda para a função que corta a página e desenha
   renderTabela(filtrados);
 }
 
@@ -90,16 +162,28 @@ function renderTabela(trades) {
   const tbody = document.getElementById("tradesTableBody");
   tbody.innerHTML = "";
 
-  if (trades.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--text-muted);">Nenhuma operação encontrada com estes filtros.</td></tr>`;
+  // Paginação: Calcula os limites matemáticos
+  const totalItens = trades.length;
+  const totalPaginas = Math.ceil(totalItens / itensPorPagina) || 1;
+  if (paginaAtual > totalPaginas) paginaAtual = totalPaginas;
+
+  const indexInicio = (paginaAtual - 1) * itensPorPagina;
+  const indexFim = indexInicio + itensPorPagina;
+
+  // Separa apenas os 10 itens da página atual
+  const tradesDaPagina = trades.slice(indexInicio, indexFim);
+
+  if (tradesDaPagina.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--text-muted);">Nenhuma operação encontrada.</td></tr>`;
+    renderControlesPaginacao(0, 1);
     return;
   }
 
-  trades.forEach((trade) => {
+  // Desenha as Linhas
+  tradesDaPagina.forEach((trade) => {
     const lucroLiquido = trade.profit - (trade.costs || 0);
     const isGain = lucroLiquido >= 0;
 
-    // Formatações Visuais
     const badge = isGain
       ? '<span class="badge badge-gain">Gain</span>'
       : '<span class="badge badge-loss">Loss</span>';
@@ -114,8 +198,6 @@ function renderTabela(trades) {
         ? '<span class="dir-compra">▲ C</span>'
         : '<span class="dir-venda">▼ V</span>';
     const catText = trade.category === "futuros" ? "Futuros" : "Ações";
-
-    // Formata a data de YYYY-MM-DD para DD/MM/YYYY
     const dataFormatada = trade.date.split("-").reverse().join("/");
 
     const tr = document.createElement("tr");
@@ -130,12 +212,40 @@ function renderTabela(trades) {
             <td style="color: var(--loss-red)">${(trade.costs || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
             <td style="color: ${plRealColor}; font-weight: bold;">${plRealText}</td>
             <td>
-                <button class="btn-edit" onclick="editarTrade(${trade.id})" title="Editar Operação">✏️</button>
-                <button class="btn-delete" onclick="deletarTrade(${trade.id})" title="Excluir Operação">🗑️</button>
+                <button class="btn-edit" onclick="editarTrade(${trade.id})" title="Editar">✏️</button>
+                <button class="btn-delete" onclick="deletarTrade(${trade.id})" title="Excluir">🗑️</button>
             </td>
         `;
     tbody.appendChild(tr);
   });
+
+  renderControlesPaginacao(totalItens, totalPaginas);
+}
+
+// Desenha os Botões da Paginação (Anterior / Próxima)
+function renderControlesPaginacao(totalItens, totalPaginas) {
+  const divControles = document.getElementById("paginationControls");
+
+  divControles.innerHTML = `
+        <span class="pagination-info">Mostrando página ${paginaAtual} de ${totalPaginas} (${totalItens} registros)</span>
+        <button class="btn-page" id="btnPrevPage" ${paginaAtual === 1 ? "disabled" : ""}>Anterior</button>
+        <button class="btn-page" id="btnNextPage" ${paginaAtual === totalPaginas ? "disabled" : ""}>Próxima</button>
+    `;
+
+  // Eventos dos botões (se eles não estiverem desabilitados)
+  if (paginaAtual > 1) {
+    document.getElementById("btnPrevPage").addEventListener("click", () => {
+      paginaAtual--;
+      aplicarFiltros();
+    });
+  }
+
+  if (paginaAtual < totalPaginas) {
+    document.getElementById("btnNextPage").addEventListener("click", () => {
+      paginaAtual++;
+      aplicarFiltros();
+    });
+  }
 }
 
 // Tornar a função de deletar acessível globalmente no HTML

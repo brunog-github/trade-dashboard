@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="styles.css" />
     <link rel="stylesheet" href="table.css" />
     <link rel="stylesheet" href="painel.css" />
+    <link rel="stylesheet" href="pagination.css" />
     <!-- Chart.js via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
@@ -109,12 +110,18 @@
           </div>
         </div>
 
-        <!-- Filtros e Histórico de Operações (Passo 4) -->
+        <!-- Filtros e Histórico de Operações (Atualizado Passo 6) -->
         <div class="history-container">
           <div class="history-header">
             <h3>Histórico de Operações</h3>
             <div class="filters-group">
-              <input type="date" id="filterDate" title="Filtrar por Data" />
+              <!-- Filtro Range de Datas -->
+              <input type="date" id="filterDateStart" title="Data Inicial" />
+              <span style="color: var(--text-muted); align-self: center"
+                >até</span
+              >
+              <input type="date" id="filterDateEnd" title="Data Final" />
+
               <input
                 type="text"
                 id="filterTicker"
@@ -133,15 +140,28 @@
             <table class="trades-table">
               <thead>
                 <tr>
-                  <th>STATUS</th>
-                  <th>DATA / HORA</th>
-                  <th>ATIVO</th>
-                  <th>CAT.</th>
-                  <th>DIR.</th>
+                  <!-- Adicionados data-sort nas colunas ordenáveis -->
+                  <th class="sortable" data-sort="status">
+                    STATUS <span class="sort-icon"></span>
+                  </th>
+                  <th class="sortable" data-sort="date">
+                    DATA / HORA <span class="sort-icon"></span>
+                  </th>
+                  <th class="sortable" data-sort="ticker">
+                    ATIVO <span class="sort-icon"></span>
+                  </th>
+                  <th class="sortable" data-sort="category">
+                    CAT. <span class="sort-icon"></span>
+                  </th>
+                  <th class="sortable" data-sort="type">
+                    DIR. <span class="sort-icon"></span>
+                  </th>
                   <th>ENTRADA</th>
                   <th>SAÍDA</th>
                   <th>CUSTOS</th>
-                  <th>P/L REAL</th>
+                  <th class="sortable" data-sort="profit">
+                    P/L REAL <span class="sort-icon"></span>
+                  </th>
                   <th>AÇÕES</th>
                 </tr>
               </thead>
@@ -149,6 +169,11 @@
                 <!-- As linhas serão injetadas aqui pelo JS -->
               </tbody>
             </table>
+          </div>
+
+          <!-- Controle de Paginação -->
+          <div class="pagination-container" id="paginationControls">
+            <!-- Botões gerados via JS -->
           </div>
         </div>
 
