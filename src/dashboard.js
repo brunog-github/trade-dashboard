@@ -297,6 +297,7 @@ function renderChart(labels, data) {
               ctx.p1.parsed.y >= 0 ? "#00e676" : "#ff5252",
           },
           pointBackgroundColor: (ctx) => (ctx.raw >= 0 ? "#00e676" : "#ff5252"),
+          pointBorderColor: (ctx) => (ctx.raw >= 0 ? "#05b862" : "#d34343"),
 
           // Mágica do preenchimento (A "Onda do Mar")
           fill: {

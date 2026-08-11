@@ -5,26 +5,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Painel de Operações - Daytrade</title>
-    <link rel="stylesheet" href="styles.css" />
-    <link rel="stylesheet" href="table.css" />
-    <link rel="stylesheet" href="painel.css" />
-    <link rel="stylesheet" href="pagination.css" />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <link rel="stylesheet" href="./src/table.css" />
+    <link rel="stylesheet" href="./src/painel.css" />
+    <link rel="stylesheet" href="./src/pagination.css" />
     <!-- Chart.js via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
+
   <body>
     <!-- Menu Lateral -->
     <nav class="sidebar">
       <!-- Usaremos emojis/caracteres como placeholder de ícones por enquanto -->
       <div class="nav-item active" title="Dashboard">📊</div>
-      <div
-        class="nav-item"
-        title="Registros (Em breve)"
-        onclick="window.location.href = 'trades.html'"
-      >
-        📋
-      </div>
-      <div class="nav-item" title="Estatísticas">📈</div>
     </nav>
 
     <!-- index.html (Trecho do conteúdo principal) -->
@@ -283,12 +276,12 @@
     </div>
 
     <!-- Importamos nosso novo script do dashboard -->
-    <script type="module" src="painel.js"></script>
-    <script type="module" src="dashboard.js"></script>
+    <script type="module" src="./src/painel.js"></script>
+    <script type="module" src="./src/dashboard.js"></script>
 
     <!-- Script principal como módulo para suportar imports e o TS compilado -->
     <script type="module">
-      import { db } from "./db.js";
+      import { db } from "./src/db.js";
 
       // Apenas um teste rápido para garantir que o Dexie está rodando
       db.on("ready", () => {
