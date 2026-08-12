@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="./src/table.css" />
     <link rel="stylesheet" href="./src/painel.css" />
     <link rel="stylesheet" href="./src/pagination.css" />
+    <link rel="stylesheet" href="./src/viewer.css" />
     <!-- Chart.js via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
@@ -378,6 +379,93 @@
         console.log("Banco de dados IndexedDB conectado com sucesso!");
       });
     </script>
+
+    <!-- Modal Visualizador de Trade (Passo 8) -->
+    <div id="tradeViewerModal" class="viewer-modal">
+      <div class="viewer-content">
+        <div class="viewer-header">
+          <div style="display: flex; align-items: center; gap: 15px">
+            <h2 id="viewTicker" style="margin: 0; font-size: 1.8rem">WIN</h2>
+            <span id="viewBadge" class="badge">Gain</span>
+          </div>
+          <span class="close-btn" onclick="fecharVisualizador()">
+            &times;
+          </span>
+        </div>
+
+        <div class="viewer-body">
+          <!-- Informações Básicas -->
+          <div class="viewer-grid">
+            <div class="viewer-info-box">
+              <span class="info-label">Data</span>
+              <strong id="viewDate" class="info-value">-</strong>
+            </div>
+            <div class="viewer-info-box">
+              <span class="info-label">Hora</span>
+              <strong id="viewTime" class="info-value">-</strong>
+            </div>
+            <div class="viewer-info-box">
+              <span class="info-label">Categoria</span>
+              <strong id="viewCategory" class="info-value">-</strong>
+            </div>
+            <div class="viewer-info-box">
+              <span class="info-label">Direção</span>
+              <strong id="viewDirection" class="info-value">-</strong>
+            </div>
+          </div>
+
+          <!-- Financeiro -->
+          <div class="viewer-grid" style="margin-top: 15px">
+            <div class="viewer-info-box">
+              <span class="info-label">Preço Entrada</span>
+              <strong id="viewEntry" class="info-value">-</strong>
+            </div>
+            <div class="viewer-info-box">
+              <span class="info-label">Preço Saída</span>
+              <strong id="viewExit" class="info-value">-</strong>
+            </div>
+            <div class="viewer-info-box">
+              <span class="info-label">Custos</span>
+              <strong id="viewCosts" class="info-value loss-text">-</strong>
+            </div>
+            <div
+              class="viewer-info-box"
+              style="background-color: rgba(255, 255, 255, 0.03)"
+            >
+              <span class="info-label">P/L Líquido</span>
+              <strong
+                id="viewProfit"
+                class="info-value"
+                style="font-size: 1.2rem"
+                >-</strong
+              >
+            </div>
+          </div>
+
+          <!-- Anotações / Motivo -->
+          <div class="viewer-section">
+            <span class="info-label">Anotações / Motivo da Operação</span>
+            <p id="viewReason" class="viewer-text-box">-</p>
+          </div>
+
+          <!-- Galeria de Imagens -->
+          <div
+            id="viewScreenshotsSection"
+            class="viewer-section"
+            style="display: none"
+          >
+            <span class="info-label">Screenshots Salvas</span>
+            <div
+              id="viewScreenshotsContainer"
+              class="screenshot-previews"
+              style="margin-top: 10px"
+            >
+              <!-- As miniaturas serão injetadas aqui -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Visualizador de Imagens em Tela Cheia -->
     <div id="imageViewerModal" class="image-viewer-modal">

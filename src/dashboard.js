@@ -390,6 +390,10 @@ function renderTabela(trades) {
         : "";
 
     const tr = document.createElement("tr");
+
+    // ADICIONADO: Ao clicar na linha inteira, abre o visualizador
+    tr.onclick = () => abrirVisualizador(trade.id);
+
     tr.innerHTML = `
             <td>${badge}</td>
             <td>${dataFormatada} - ${trade.time}</td>
@@ -401,8 +405,9 @@ function renderTabela(trades) {
             <td style="color: var(--loss-red)">${(trade.costs || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
             <td style="color: ${plRealColor}; font-weight: bold;">${plRealText}</td>
             <td>
-                <button class="btn-edit" onclick="editarTrade(${trade.id})" title="Editar">✏️</button>
-                <button class="btn-delete" onclick="deletarTrade(${trade.id})" title="Excluir">🗑️</button>
+                <!-- ADICIONADO: event.stopPropagation() para os botões não abrirem o Raio-X sem querer -->
+                <button class="btn-edit" onclick="event.stopPropagation(); editarTrade(${trade.id})" title="Editar">✏️</button>
+                <button class="btn-delete" onclick="event.stopPropagation(); deletarTrade(${trade.id})" title="Excluir">🗑️</button>
             </td>
         `;
     tbody.appendChild(tr);
@@ -811,3 +816,81 @@ tradeForm.addEventListener("submit", async (e) => {
     alert("Erro ao salvar. Verifique o console.");
   }
 });
+
+// ================= VISUALIZADOR DE TRADES (MODAL RAIO-X) =================
+
+window.abrirVisualizador = (id) => {
+  const trade = todosOsTrades.find((t) => t.id === id);
+  if (!trade) return;
+
+  // 1. Cálculos e Formatações
+  const lucroLiquido = trade.profit - (trade.costs || 0);
+  const isGain = lucroLiquido >= 0;
+
+  // 2. Preenche o Cabeçalho
+  document.getElementById("viewTicker").innerText = trade.ticker;
+  const badge = document.getElementById("viewBadge");
+  badge.innerText = isGain ? "Gain" : "Loss";
+  badge.className = isGain ? "badge badge-gain" : "badge badge-loss";
+
+  // 3. Preenche as Caixas de Informação
+  document.getElementById("viewDate").innerText = trade.date
+    .split("-")
+    .reverse()
+    .join("/");
+  document.getElementById("viewTime").innerText = trade.time;
+  document.getElementById("viewCategory").innerText =
+    trade.category === "futuros" ? "Futuros" : "Ações";
+
+  const dirEl = document.getElementById("viewDirection");
+  dirEl.innerText = trade.type;
+  dirEl.style.color =
+    trade.type === "Compra" ? "var(--profit-green)" : "var(--loss-red)";
+
+  // 4. Preenche o Financeiro
+  document.getElementById("viewEntry").innerText =
+    trade.entryPrice.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+  document.getElementById("viewExit").innerText =
+    trade.exitPrice.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+  document.getElementById("viewCosts").innerText = (
+    trade.costs || 0
+  ).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+  const profitEl = document.getElementById("viewProfit");
+  profitEl.innerText = lucroLiquido.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+  profitEl.style.color = isGain ? "var(--profit-green)" : "var(--loss-red)";
+
+  // 5. Preenche o Motivo (Se não tiver, mostra uma mensagem sutil)
+  document.getElementById("viewReason").innerText =
+    trade.reason || "Nenhuma anotação registrada para esta operação.";
+
+  // 6. Trata as Imagens (Screenshots)
+  const screenshotsSection = document.getElementById("viewScreenshotsSection");
+  const screenshotsContainer = document.getElementById(
+    "viewScreenshotsContainer",
+  );
+  screenshotsContainer.innerHTML = ""; // Limpa as antigas
+
+  if (trade.screenshots && trade.screenshots.length > 0) {
+    screenshotsSection.style.display = "block";
+    trade.screenshots.forEach((src) => {
+      const div = document.createElement("div");
+      div.className = "screenshot-thumb-container";
+      // Reaproveita a função visualizarImagem que já criamos antes!
+      div.innerHTML = `<img src="${src}" onclick="visualizarImagem('${src}')" title="Clique para ampliar">`;
+      screenshotsContainer.appendChild(div);
+    });
+  } else {
+    screenshotsSection.style.display = "none";
+  }
+
+  // 7. Mostra o Modal
+  document.getElementById("tradeViewerModal").style.display = "flex";
+};
+
+window.fecharVisualizador = () => {
+  document.getElementById("tradeViewerModal").style.display = "none";
+};
