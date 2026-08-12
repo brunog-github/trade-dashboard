@@ -325,6 +325,36 @@
             ></textarea>
           </div>
 
+          <!-- Campo de Screenshots -->
+          <div class="form-group" style="grid-column: 1 / -1">
+            <label>Screenshots do Gráfico (Opcional)</label>
+            <input
+              type="file"
+              id="screenshotInput"
+              accept="image/*"
+              multiple
+              style="display: none"
+            />
+
+            <button
+              type="button"
+              class="btn-cancel"
+              onclick="document.getElementById('screenshotInput').click()"
+              style="
+                width: 100%;
+                margin-bottom: 10px;
+                border: 1px dashed var(--border-color);
+                background: transparent;
+              "
+            >
+              📸 Adicionar Imagem
+            </button>
+
+            <div id="screenshotPreviews" class="screenshot-previews">
+              <!-- Miniaturas das imagens aparecerão aqui -->
+            </div>
+          </div>
+
           <div class="modal-footer">
             <button type="button" class="btn-cancel" id="cancelBtn">
               Cancelar
@@ -348,6 +378,18 @@
         console.log("Banco de dados IndexedDB conectado com sucesso!");
       });
     </script>
+
+    <!-- Visualizador de Imagens em Tela Cheia -->
+    <div id="imageViewerModal" class="image-viewer-modal">
+      <span
+        class="close-viewer"
+        onclick="
+          document.getElementById('imageViewerModal').style.display = 'none'
+        "
+        >&times;</span
+      >
+      <img id="fullSizeImage" src="" alt="Visualização Completa" />
+    </div>
 
     <!-- Botão Flutuante para Nova Operação -->
     <button id="btnFloatingAdd" class="floating-btn" title="Nova Operação">

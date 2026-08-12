@@ -5,6 +5,7 @@ import { calcularEstatisticas } from "./painel.js";
 let chartInstance = null;
 let todosOsTrades = []; // Variável global para armazenar e filtrar a tabela
 let operacaoEditandoId = null;
+let screenshotsTemporarias = []; // Guarda as imagens do modal atual em formato Base64
 
 // Variáveis de Controle
 let paginaAtual = 1;
@@ -382,11 +383,17 @@ function renderTabela(trades) {
     const catText = trade.category === "futuros" ? "Futuros" : "Ações";
     const dataFormatada = trade.date.split("-").reverse().join("/");
 
+    // Verifica se tem imagens
+    const iconFoto =
+      trade.screenshots && trade.screenshots.length > 0
+        ? ' <span title="Possui Screenshot" style="font-size: 0.9rem;">📸</span>'
+        : "";
+
     const tr = document.createElement("tr");
     tr.innerHTML = `
             <td>${badge}</td>
             <td>${dataFormatada} - ${trade.time}</td>
-            <td style="font-weight: bold;">${trade.ticker}</td>
+            <td style="font-weight: bold;">${trade.ticker}${iconFoto}</td> <!-- Ícone adicionado aqui -->
             <td>${catText}</td>
             <td>${dirText}</td>
             <td>${trade.entryPrice.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</td>
@@ -528,6 +535,59 @@ function openModal() {
   document.getElementById("date").value = today;
 }
 
+// ================= LÓGICA DE SCREENSHOTS =================
+
+// Escuta o input de arquivo e converte as imagens
+document
+  .getElementById("screenshotInput")
+  .addEventListener("change", async (e) => {
+    const files = e.target.files;
+    for (let file of files) {
+      const base64 = await convertFileToBase64(file);
+      screenshotsTemporarias.push(base64);
+    }
+    renderizarMiniaturas();
+    e.target.value = ""; // Reseta o input para permitir enviar a mesma imagem se apagada
+  });
+
+// Transforma a imagem em texto para o Banco de Dados
+function convertFileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (error) => reject(error);
+    reader.readAsDataURL(file);
+  });
+}
+
+// Desenha os quadradinhos na tela
+function renderizarMiniaturas() {
+  const container = document.getElementById("screenshotPreviews");
+  container.innerHTML = "";
+
+  screenshotsTemporarias.forEach((src, index) => {
+    const div = document.createElement("div");
+    div.className = "screenshot-thumb-container";
+    div.innerHTML = `
+            <img src="${src}" onclick="visualizarImagem('${src}')" title="Clique para ampliar">
+            <button type="button" class="btn-remove-thumb" onclick="removerScreenshot(${index})" title="Remover Imagem">X</button>
+        `;
+    container.appendChild(div);
+  });
+}
+
+// Remover uma imagem da lista
+window.removerScreenshot = (index) => {
+  screenshotsTemporarias.splice(index, 1);
+  renderizarMiniaturas();
+};
+
+// Abrir a imagem grandona no Visualizador
+window.visualizarImagem = (src) => {
+  document.getElementById("fullSizeImage").src = src;
+  document.getElementById("imageViewerModal").style.display = "flex";
+};
+
 function closeTradeModal() {
   modal.style.display = "none";
   tradeForm.reset();
@@ -541,6 +601,10 @@ function closeTradeModal() {
   ["entryPrice", "exitPrice", "profit", "costs"].forEach((id) => {
     document.getElementById(id).dataset.rawValue = 0;
   });
+
+  // Limpa as screenshots
+  screenshotsTemporarias = [];
+  renderizarMiniaturas();
 }
 
 window.editarTrade = async (id) => {
@@ -567,6 +631,10 @@ window.editarTrade = async (id) => {
       currency: "BRL",
     });
   };
+
+  // Carrega as imagens, se existirem
+  screenshotsTemporarias = trade.screenshots ? [...trade.screenshots] : [];
+  renderizarMiniaturas();
 
   setValorFormatado("entryPrice", trade.entryPrice);
   setValorFormatado("exitPrice", trade.exitPrice);
@@ -717,6 +785,8 @@ tradeForm.addEventListener("submit", async (e) => {
     profit: getValorSeguro("profit"),
     costs: getValorSeguro("costs"),
     reason: document.getElementById("reason").value,
+    // SALVA AS IMAGENS AQUI:
+    screenshots: [...screenshotsTemporarias],
   };
 
   console.log("Tentando salvar operação:", newTrade);
