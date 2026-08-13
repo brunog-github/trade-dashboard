@@ -13,6 +13,40 @@ const itensPorPagina = 10;
 let colunaOrdenacao = "date"; // Ordenação padrão
 let ordemAscendente = false; // False = do mais novo pro mais velho
 
+// ================= SISTEMA DE CONFIRMAÇÃO CUSTOMIZADO =================
+window.showConfirmDialog = (titulo, mensagem, isDanger = false) => {
+  return new Promise((resolve) => {
+    const modal = document.getElementById("customConfirmModal");
+    const btnAction = document.getElementById("btnConfirmAction");
+    const btnCancel = document.getElementById("btnConfirmCancel");
+
+    // Preenche os textos
+    document.getElementById("confirmTitle").innerText = titulo;
+    document.getElementById("confirmMessage").innerText = mensagem;
+
+    // Estiliza o botão de confirmar dependendo do tipo da ação
+    btnAction.className = isDanger ? "btn-danger" : "btn-save";
+    btnAction.innerText = isDanger ? "Sim, Excluir" : "Confirmar";
+
+    // Mostra o modal
+    modal.style.display = "flex";
+
+    // Funções para resolver a Promise e limpar eventos
+    const cleanupAndResolve = (result) => {
+      modal.style.display = "none";
+      btnAction.removeEventListener("click", onConfirm);
+      btnCancel.removeEventListener("click", onCancel);
+      resolve(result); // Devolve true ou false
+    };
+
+    const onConfirm = () => cleanupAndResolve(true);
+    const onCancel = () => cleanupAndResolve(false);
+
+    btnAction.addEventListener("click", onConfirm);
+    btnCancel.addEventListener("click", onCancel);
+  });
+};
+
 // Novos Event Listeners dos Filtros
 document.getElementById("filterDateStart").addEventListener("change", () => {
   paginaAtual = 1;
@@ -53,17 +87,20 @@ document.getElementById("clearFilters").addEventListener("click", () => {
 // FUNÇÃO EXCLUIR TUDO
 document.getElementById("btnDeleteAll").addEventListener("click", async () => {
   if (todosOsTrades.length === 0) {
-    alert("Não há operações para excluir.");
+    alert("Não há operações para excluir."); // Se quiser, pode usar um modal pro alert depois!
     return;
   }
 
-  const confirmacao = confirm(
-    "CUIDADO! Tem certeza que deseja apagar TODO o seu histórico de operações? Esta ação não pode ser desfeita.",
+  // Chama nosso modal customizado
+  const confirmado = await showConfirmDialog(
+    "CUIDADO: Zona de Perigo",
+    "Você está prestes a apagar TODO o seu histórico de operações. Esta ação não poderá ser desfeita. Deseja continuar?",
+    true,
   );
 
-  if (confirmacao) {
-    await db.trades.clear(); // Limpa o banco de dados inteiro!
-    loadDashboardData(); // Recarrega a página zerada
+  if (confirmado) {
+    await db.trades.clear();
+    loadDashboardData();
   }
 });
 
@@ -444,11 +481,14 @@ function renderControlesPaginacao(totalItens, totalPaginas) {
 
 // Tornar a função de deletar acessível globalmente no HTML
 window.deletarTrade = async (id) => {
-  if (
-    confirm(
-      "Tem certeza que deseja excluir esta operação? Isso alterará os resultados.",
-    )
-  ) {
+  // Chama nosso modal customizado (Título, Mensagem, isDanger = true)
+  const confirmado = await showConfirmDialog(
+    "Excluir Operação",
+    "Tem certeza que deseja excluir este registro? Os resultados do seu dashboard serão recalculados.",
+    true,
+  );
+
+  if (confirmado) {
     await db.trades.delete(id);
     loadDashboardData(); // Recarrega tudo
   }

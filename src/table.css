@@ -277,3 +277,58 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 .close-viewer:hover {
   color: var(--loss-red);
 }
+
+/* ================= MODAL DE CONFIRMAÇÃO ================= */
+.confirm-content {
+  background-color: var(--bg-card);
+  width: 90%;
+  max-width: 420px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
+  padding: 30px;
+  text-align: center;
+  animation: fadeIn 0.2s ease;
+}
+
+.confirm-content h3 {
+  margin-top: 0;
+  color: var(--text-main);
+  font-size: 1.4rem;
+  margin-bottom: 15px;
+}
+
+.confirm-content p {
+  color: var(--text-muted);
+  font-size: 1rem;
+  margin-bottom: 30px;
+  line-height: 1.5;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.confirm-actions button {
+  min-width: 120px;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+}
+
+/* Botão de confirmação de exclusão/perigo */
+.btn-danger {
+  background-color: var(--loss-red);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.btn-danger:hover {
+  box-shadow: 0 0 15px rgba(255, 82, 82, 0.4);
+  transform: translateY(-2px);
+}
