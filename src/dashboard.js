@@ -418,7 +418,21 @@ function renderTabela(trades) {
         ? '<span class="dir-compra">▲ C</span>'
         : '<span class="dir-venda">▼ V</span>';
     const catText = trade.category === "futuros" ? "Futuros" : "Ações";
-    const dataFormatada = trade.date.split("-").reverse().join("/");
+
+    const dIn = trade.date.split("-").reverse().slice(0, 2).join("/");
+    let periodoHTML = `${dIn} - ${trade.time}`; // Padrão antigo
+
+    if (trade.exitDate && trade.exitTime) {
+      const dOut = trade.exitDate.split("-").reverse().slice(0, 2).join("/");
+
+      // Se entrou e saiu no MESMO dia, resume para ficar limpo
+      if (trade.date === trade.exitDate) {
+        periodoHTML = `${dIn}<br><span style="font-size:0.8rem; color:var(--text-muted)">${trade.time} às ${trade.exitTime}</span>`;
+      } else {
+        // Se levou mais de um dia
+        periodoHTML = `${dIn} - ${trade.time}<br><span style="font-size:0.8rem; color:var(--text-muted)">até ${dOut} - ${trade.exitTime}</span>`;
+      }
+    }
 
     // Verifica se tem imagens
     const iconFoto =
@@ -433,7 +447,7 @@ function renderTabela(trades) {
 
     tr.innerHTML = `
             <td>${badge}</td>
-            <td>${dataFormatada} - ${trade.time}</td>
+            <td>${periodoHTML}</td>
             <td style="font-weight: bold;">${trade.ticker}${iconFoto}</td> <!-- Ícone adicionado aqui -->
             <td>${catText}</td>
             <td>${dirText}</td>
@@ -662,6 +676,9 @@ window.editarTrade = async (id) => {
   // Preenche campos simples
   document.getElementById("date").value = trade.date;
   document.getElementById("time").value = trade.time;
+  // NOVOS CAMPOS (Se o trade antigo não tiver saída, usa a entrada como fallback):
+  document.getElementById("exitDate").value = trade.exitDate || trade.date;
+  document.getElementById("exitTime").value = trade.exitTime || trade.time;
   document.getElementById("category").value = trade.category;
   document.getElementById("ticker").value = trade.ticker;
   document.getElementById("type").value = trade.type;
@@ -832,6 +849,8 @@ tradeForm.addEventListener("submit", async (e) => {
     reason: document.getElementById("reason").value,
     // SALVA AS IMAGENS AQUI:
     screenshots: [...screenshotsTemporarias],
+    exitDate: document.getElementById("exitDate").value,
+    exitTime: document.getElementById("exitTime").value,
   };
 
   console.log("Tentando salvar operação:", newTrade);
@@ -873,12 +892,42 @@ window.abrirVisualizador = (id) => {
   badge.innerText = isGain ? "Gain" : "Loss";
   badge.className = isGain ? "badge badge-gain" : "badge badge-loss";
 
-  // 3. Preenche as Caixas de Informação
-  document.getElementById("viewDate").innerText = trade.date
-    .split("-")
-    .reverse()
-    .join("/");
-  document.getElementById("viewTime").innerText = trade.time;
+  // 3. Preenche Datas e Calcula Duração
+  const dIn = trade.date.split("-").reverse().slice(0, 2).join("/");
+  const tIn = trade.time;
+
+  // Fallback para trades antigos
+  const exitD_raw = trade.exitDate || trade.date;
+  const exitT_raw = trade.exitTime || trade.time;
+
+  const dOut = exitD_raw.split("-").reverse().slice(0, 2).join("/");
+  const tOut = exitT_raw;
+
+  document.getElementById("viewEntryDateTime").innerText = `${dIn} - ${tIn}`;
+  document.getElementById("viewExitDateTime").innerText = `${dOut} - ${tOut}`;
+
+  // Lógica Matemática de Duração
+  const start = new Date(`${trade.date}T${trade.time}`);
+  const end = new Date(`${exitD_raw}T${exitT_raw}`);
+  const diffMs = end - start;
+
+  let durationText = "N/A";
+  if (diffMs >= 0) {
+    const diffMins = Math.floor(diffMs / 60000);
+    const days = Math.floor(diffMins / 1440);
+    const hours = Math.floor((diffMins % 1440) / 60);
+    const mins = diffMins % 60;
+
+    let partes = [];
+    if (days > 0) partes.push(`${days} dia${days > 1 ? "s" : ""}`);
+    if (hours > 0) partes.push(`${hours}h`);
+    if (mins > 0 || partes.length === 0) partes.push(`${mins} min`);
+
+    durationText = partes.join(" e ");
+  }
+  document.getElementById("viewDuration").innerText = durationText;
+
+  // 4. Preenche Categoria e Direção
   document.getElementById("viewCategory").innerText =
     trade.category === "futuros" ? "Futuros" : "Ações";
 

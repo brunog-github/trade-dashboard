@@ -108,6 +108,16 @@
               <span class="stat-title">PERDA MÉDIA</span>
               <span class="stat-value loss" id="stat-avg-loss">R$ 0,00</span>
             </div>
+            <!-- Novo Card: Tempo Médio -->
+            <div class="stat-card">
+              <span class="stat-title">Tempo Médio no Trade</span>
+              <strong
+                id="stat-avg-time"
+                class="stat-value"
+                style="color: var(--accent-yellow)"
+                >-</strong
+              >
+            </div>
             <div class="stat-card">
               <span class="stat-title">MELHOR TRADE</span>
               <span class="stat-value profit" id="stat-best-trade"
@@ -242,13 +252,46 @@
 
         <form id="tradeForm">
           <div class="form-row">
-            <div class="form-group">
-              <label for="date">Data</label>
-              <input type="date" id="date" required />
+            <!-- Entrada -->
+            <div class="form-group" style="margin-bottom: 0">
+              <label>Entrada (Data/Hora)</label>
+              <div style="display: flex; gap: 5px">
+                <input
+                  type="date"
+                  id="date"
+                  required
+                  style="flex: 1; width: 50px"
+                  title="Data de Entrada"
+                />
+                <input
+                  type="time"
+                  id="time"
+                  required
+                  style="width: auto"
+                  title="Hora de Entrada"
+                />
+              </div>
             </div>
-            <div class="form-group">
-              <label for="time">Hora</label>
-              <input type="time" id="time" required />
+
+            <!-- Saída -->
+            <div class="form-group" style="margin-bottom: 0">
+              <label>Saída (Data/Hora)</label>
+              <div style="display: flex; gap: 5px">
+                <input
+                  type="date"
+                  id="exitDate"
+                  required
+                  style="flex: 1; width: 50px"
+                  title="Data de Saída"
+                />
+                <input
+                  type="time"
+                  id="exitTime"
+                  required
+                  style="width: auto"
+                  title="Hora de Saída"
+                />
+              </div>
             </div>
           </div>
 
@@ -406,16 +449,35 @@
         </div>
 
         <div class="viewer-body">
-          <!-- Informações Básicas -->
+          <!-- Informações Básicas (Tempo) -->
+          <div class="viewer-grid" style="margin-bottom: 15px">
+            <div class="viewer-info-box">
+              <span class="info-label">Entrada</span>
+              <strong id="viewEntryDateTime" class="info-value">-</strong>
+            </div>
+            <div class="viewer-info-box">
+              <span class="info-label">Saída</span>
+              <strong id="viewExitDateTime" class="info-value">-</strong>
+            </div>
+            <div
+              class="viewer-info-box"
+              style="
+                background-color: rgba(255, 213, 79, 0.05);
+                border-color: rgba(255, 213, 79, 0.3);
+              "
+            >
+              <span class="info-label">Duração</span>
+              <strong
+                id="viewDuration"
+                class="info-value"
+                style="color: var(--accent-yellow)"
+                >-</strong
+              >
+            </div>
+          </div>
+
+          <!-- Informações Básicas (Tipo) -->
           <div class="viewer-grid">
-            <div class="viewer-info-box">
-              <span class="info-label">Data</span>
-              <strong id="viewDate" class="info-value">-</strong>
-            </div>
-            <div class="viewer-info-box">
-              <span class="info-label">Hora</span>
-              <strong id="viewTime" class="info-value">-</strong>
-            </div>
             <div class="viewer-info-box">
               <span class="info-label">Categoria</span>
               <strong id="viewCategory" class="info-value">-</strong>

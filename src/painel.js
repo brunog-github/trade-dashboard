@@ -12,6 +12,8 @@ export function calcularEstatisticas(trades) {
   let grossLoss = 0;
   let bestTrade = -Infinity;
   let worstTrade = Infinity;
+  let totalDurationMs = 0;
+  let tradesComDuracao = 0;
 
   trades.forEach((trade) => {
     // Pega o lucro descontando os custos
@@ -23,6 +25,19 @@ export function calcularEstatisticas(trades) {
     } else if (p < 0) {
       losses++;
       grossLoss += Math.abs(p); // Converte negativo para positivo para somar perdas
+    }
+
+    // --- CÁLCULO DE TEMPO ---
+    const exitD_raw = trade.exitDate || trade.date;
+    const exitT_raw = trade.exitTime || trade.time;
+
+    const start = new Date(`${trade.date}T${trade.time}`);
+    const end = new Date(`${exitD_raw}T${exitT_raw}`);
+    const diffMs = end - start;
+
+    if (diffMs >= 0) {
+      totalDurationMs += diffMs;
+      tradesComDuracao++;
     }
 
     // Verifica Maior e Menor trade
@@ -43,6 +58,25 @@ export function calcularEstatisticas(trades) {
   const profitFactor =
     grossLoss > 0 ? grossProfit / grossLoss : grossProfit > 0 ? 99.99 : 0;
   const payoff = avgLoss > 0 ? avgWin / avgLoss : avgWin > 0 ? 99.99 : 0;
+
+  // --- FORMATAÇÃO DO TEMPO MÉDIO ---
+  let avgTimeText = "-";
+  if (tradesComDuracao > 0) {
+    const avgMs = totalDurationMs / tradesComDuracao; // Tira a média em milissegundos
+    const avgMins = Math.floor(avgMs / 60000); // Converte para minutos
+
+    const days = Math.floor(avgMins / 1440);
+    const hours = Math.floor((avgMins % 1440) / 60);
+    const mins = avgMins % 60;
+
+    let partes = [];
+    if (days > 0) partes.push(`${days}d`);
+    if (hours > 0) partes.push(`${hours}h`);
+    if (mins > 0 || partes.length === 0) partes.push(`${mins}m`);
+
+    avgTimeText = partes.join(" ");
+  }
+  document.getElementById("stat-avg-time").innerText = avgTimeText;
 
   // Injetando no HTML
   document.getElementById("stat-total-ops").innerText = totalOps;
