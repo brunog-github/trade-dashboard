@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="./src/painel.css" />
     <link rel="stylesheet" href="./src/pagination.css" />
     <link rel="stylesheet" href="./src/viewer.css" />
+    <link rel="stylesheet" href="./src/calendar.css" />
     <!-- Chart.js via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
@@ -52,7 +53,15 @@
       <div class="page-container">
         <!-- Cards de Resumo -->
         <!-- Controles de Período do Dashboard -->
-        <div class="dashboard-controls" style="margin-bottom: 20px">
+        <div
+          class="dashboard-controls"
+          style="
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+          "
+        >
           <select
             id="monthSelector"
             class="month-selector"
@@ -60,6 +69,15 @@
           >
             <!-- As opções serão injetadas pelo JS -->
           </select>
+
+          <!-- Botão Atualizado -->
+          <button
+            class="btn-rules"
+            onclick="abrirModalRegras()"
+            title="Editar Minhas Regras"
+          >
+            📜 Minhas Regras
+          </button>
         </div>
 
         <!-- Cards de Resumo (Dinâmicos) -->
@@ -129,15 +147,56 @@
               <span class="stat-value loss" id="stat-worst-trade">R$ 0,00</span>
             </div>
           </div>
-        </div>
 
-        <!-- Gráfico de Evolução -->
-        <div class="chart-container">
-          <div class="chart-header">
-            <h3>Curva de Capital (em R$)</h3>
-          </div>
-          <div class="canvas-wrapper">
-            <canvas id="evolutionChart"></canvas>
+          <div class="dashboard-split" style="margin-top: 30px">
+            <!-- Lado Esquerdo: Painel de Consistência -->
+            <div class="dashboard-section" style="margin: 0">
+              <div style="margin-bottom: 15px">
+                <h2 style="margin-bottom: 5px">Painel de Consistência</h2>
+                <p
+                  style="
+                    font-size: 0.85rem;
+                    color: var(--text-muted);
+                    margin: 0;
+                  "
+                >
+                  Clique no dia:
+                  <span
+                    style="
+                      color: var(--profit-green);
+                      font-weight: bold;
+                      margin-left: 5px;
+                    "
+                    >🟩 Segui o Plano</span
+                  >
+                  |
+                  <span style="color: var(--loss-red); font-weight: bold"
+                    >🟥 Quebrei Regras</span
+                  >
+                </p>
+              </div>
+              <div id="consistencyCalendar" class="calendar-grid"></div>
+            </div>
+
+            <!-- Lado Direito: Gráfico (Curva de Capital) -->
+            <div class="dashboard-section" style="margin: 0">
+              <div style="margin-bottom: 15px">
+                <h2 style="margin-bottom: 5px">Curva de Capital</h2>
+                <p
+                  style="
+                    font-size: 0.85rem;
+                    color: var(--text-muted);
+                    margin: 0;
+                  "
+                >
+                  Evolução financeira do período selecionado
+                </p>
+              </div>
+              <!-- O contêiner do gráfico reestruturado -->
+              <div class="chart-container fixed-chart">
+                <canvas id="evolutionChart"></canvas>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -351,11 +410,23 @@
           <div class="form-row">
             <div class="form-group">
               <label for="profit">Resultado Bruto (R$)</label>
-              <input type="text" id="profit" placeholder="R$ 0,00" required />
+              <input
+                type="text"
+                id="profit"
+                placeholder="R$ 0,00"
+                value="R$ 0,00"
+                required
+              />
             </div>
             <div class="form-group">
               <label for="costs">Custos (R$)</label>
-              <input type="text" id="costs" placeholder="R$ 0,00" required />
+              <input
+                type="text"
+                id="costs"
+                placeholder="R$ 0,00"
+                value="R$ 0,00"
+                required
+              />
             </div>
           </div>
 
@@ -551,6 +622,51 @@
         >&times;</span
       >
       <img id="fullSizeImage" src="" alt="Visualização Completa" />
+    </div>
+
+    <!-- Modal de Regras de Trading -->
+    <div id="rulesModal" class="viewer-modal">
+      <div class="viewer-content">
+        <div class="viewer-header">
+          <h2 style="margin: 0">📜 Regras de Trading</h2>
+          <span
+            class="close-btn"
+            onclick="
+              document.getElementById('rulesModal').style.display = 'none'
+            "
+          >
+            &times;
+          </span>
+        </div>
+        <div class="viewer-body">
+          <div style="display: flex; gap: 10px; margin-bottom: 20px">
+            <input
+              type="text"
+              id="newRuleInput"
+              placeholder="Ex: Nunca operar no primeiro candle..."
+              style="
+                flex: 1;
+                padding: 10px;
+                border-radius: 6px;
+                border: 1px solid var(--border-color);
+                background: var(--bg-dark);
+                color: var(--text-main);
+              "
+            />
+            <button
+              class="btn-save"
+              onclick="adicionarRegra()"
+              style="width: auto; padding: 0 20px"
+            >
+              Adicionar
+            </button>
+          </div>
+
+          <ul id="rulesList" class="rules-list">
+            <!-- Regras aparecerão aqui -->
+          </ul>
+        </div>
+      </div>
     </div>
 
     <!-- Botão Flutuante para Nova Operação -->

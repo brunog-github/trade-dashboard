@@ -300,6 +300,7 @@ function atualizarDashboardVisuais() {
   // Atualiza o Gráfico e as Estatísticas apenas com os dados do mês
   renderChart(chartLabels, chartData);
   calcularEstatisticas(tradesDoMes);
+  renderizarCalendario();
 }
 
 // ========= LÓGICA DA TABELA E FILTROS =========
@@ -983,3 +984,127 @@ window.abrirVisualizador = (id) => {
 window.fecharVisualizador = () => {
   document.getElementById("tradeViewerModal").style.display = "none";
 };
+
+// ================= REGRAS DE TRADING =================
+let tradingRules = JSON.parse(localStorage.getItem("tradingRules")) || [
+  "Nunca operar no primeiro candle",
+  "No máximo 3 operações no dia",
+  "Comprar sempre próximo às mínimas do mercado",
+];
+
+window.abrirModalRegras = () => {
+  document.getElementById("rulesModal").style.display = "flex";
+  renderizarRegras();
+};
+
+function renderizarRegras() {
+  const list = document.getElementById("rulesList");
+  list.innerHTML = "";
+
+  tradingRules.forEach((rule, index) => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+            <span>🎯 ${rule}</span>
+            <button class="btn-delete-rule" onclick="removerRegra(${index})" title="Remover Regra">🗑️</button>
+        `;
+    list.appendChild(li);
+  });
+
+  // Salva automaticamente sempre que renderiza
+  localStorage.setItem("tradingRules", JSON.stringify(tradingRules));
+}
+
+window.adicionarRegra = () => {
+  const input = document.getElementById("newRuleInput");
+  const texto = input.value.trim();
+  if (texto) {
+    tradingRules.push(texto);
+    input.value = "";
+    renderizarRegras();
+  }
+};
+
+window.removerRegra = async (index) => {
+  const confirmado = await showConfirmDialog(
+    "Remover Regra",
+    "Deseja excluir esta regra do seu plano de trading?",
+    false,
+  );
+  if (confirmado) {
+    tradingRules.splice(index, 1);
+    renderizarRegras();
+  }
+};
+
+// ================= PAINEL DE CONSISTÊNCIA (CALENDÁRIO) =================
+// Formato salvo: { "2026-08-01": "success", "2026-08-02": "fail" }
+let consistencyData = JSON.parse(localStorage.getItem("consistencyData")) || {};
+
+function renderizarCalendario() {
+  const container = document.getElementById("consistencyCalendar");
+  container.innerHTML = ""; // Limpa
+
+  // Dias da semana no topo
+  const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+  diasSemana.forEach((d) => {
+    const div = document.createElement("div");
+    div.className = "calendar-header-day";
+    div.innerText = d;
+    container.appendChild(div);
+  });
+
+  // Pega o ano e mês baseado no seletor que já existe (mesVisualizado)
+  const [anoStr, mesStr] = mesVisualizado.split("-");
+  const ano = parseInt(anoStr);
+  const mes = parseInt(mesStr) - 1; // Meses no JS começam no 0
+
+  const diasNoMes = new Date(ano, mes + 1, 0).getDate();
+  const primeiroDiaSemana = new Date(ano, mes, 1).getDay(); // Qual dia da semana cai o dia 1?
+
+  // Preenche com blocos vazios até o primeiro dia do mês
+  for (let i = 0; i < primeiroDiaSemana; i++) {
+    const div = document.createElement("div");
+    container.appendChild(div); // Div vazia sem a classe calendar-day
+  }
+
+  // Desenha os dias reais do mês
+  for (let dia = 1; dia <= diasNoMes; dia++) {
+    const div = document.createElement("div");
+    div.className = "calendar-day";
+    div.innerText = dia;
+
+    // Cria a string da data para buscar/salvar no formato "YYYY-MM-DD"
+    const diaStr = dia.toString().padStart(2, "0");
+    const dataCompleta = `${mesVisualizado}-${diaStr}`;
+
+    // Colore se tiver status salvo
+    const status = consistencyData[dataCompleta];
+    if (status === "success") div.classList.add("day-success");
+    if (status === "fail") div.classList.add("day-fail");
+
+    // Evento de Clique para alternar o status
+    div.onclick = () => alternarStatusDia(dataCompleta, div);
+
+    container.appendChild(div);
+  }
+}
+
+function alternarStatusDia(dataCompleta, elementoHtml) {
+  const statusAtual = consistencyData[dataCompleta];
+
+  // Lógica de alternância: Vazio -> Sucesso -> Falha -> Vazio
+  if (!statusAtual) {
+    consistencyData[dataCompleta] = "success";
+    elementoHtml.classList.add("day-success");
+  } else if (statusAtual === "success") {
+    consistencyData[dataCompleta] = "fail";
+    elementoHtml.classList.remove("day-success");
+    elementoHtml.classList.add("day-fail");
+  } else {
+    delete consistencyData[dataCompleta]; // Remove
+    elementoHtml.classList.remove("day-fail");
+  }
+
+  // Salva no LocalStorage
+  localStorage.setItem("consistencyData", JSON.stringify(consistencyData));
+}

@@ -1,0 +1,158 @@
+/* ================= PAINEL DE CONSISTÊNCIA & REGRAS ================= */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  background-color: var(--bg-card);
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  /* AS TRAVAS DE TAMANHO: */
+  max-width: 750px; /* Impede o calendário de crescer infinitamente */
+  margin: 0; /* Alinha à esquerda. Se preferir centralizado, troque para '0 auto' */
+}
+
+.calendar-header-day {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  padding-bottom: 5px;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  background-color: var(--bg-dark);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.calendar-day:not(:empty):hover {
+  border-color: var(--accent-yellow);
+  transform: translateY(-2px);
+}
+
+/* Cores de Status do Calendário */
+.day-success {
+  background-color: rgba(76, 175, 80, 0.15);
+  border-color: var(--profit-green);
+  color: var(--profit-green);
+}
+
+.day-fail {
+  background-color: rgba(244, 67, 54, 0.15);
+  border-color: var(--loss-red);
+  color: var(--loss-red);
+}
+
+/* Lista de Regras */
+.rules-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rules-list li {
+  background-color: var(--bg-dark);
+  padding: 12px 15px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-main);
+}
+
+.btn-delete-rule {
+  background: transparent;
+  color: var(--loss-red);
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-delete-rule:hover {
+  transform: scale(1.2);
+}
+
+/* ================= GRID LADO A LADO ================= */
+.dashboard-split {
+  display: grid;
+  /* A trava mágica minmax(0, 1fr) impede o gráfico de vazar para o infinito */
+  grid-template-columns: 350px minmax(0, 1fr);
+  gap: 25px;
+  align-items: start;
+}
+
+/* ================= CONTÊINER SEGURO PARA O GRÁFICO ================= */
+.fixed-chart {
+  position: relative; /* Obrigatório para o Chart.js não enlouquecer */
+  width: 100%;
+  height: 330px; /* Altura fixa para alinhar com o tamanho do calendário */
+  background-color: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  padding: 20px;
+  box-sizing: border-box;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 1000px) {
+  .dashboard-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ================= NOVO BOTÃO DE REGRAS ================= */
+.btn-rules {
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.btn-rules:hover {
+  border-color: var(--accent-yellow);
+  color: var(--accent-yellow);
+  transform: translateY(-2px);
+}
+
+/* Ajusta o calendário para preencher o novo espaço certinho */
+.calendar-grid {
+  max-width: 100%; /* Remove a trava antiga para ele seguir a coluna de 400px */
+  width: 100%;
+}
+
+.viewer-body button {
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  border: none;
+  transition: 0.2s;
+}
