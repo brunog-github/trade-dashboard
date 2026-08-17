@@ -98,7 +98,28 @@
 
         <!-- Seção de Estatísticas Avançadas (Passo 5) -->
         <div class="stats-grid-container">
-          <h3 class="section-title">Estatísticas Gerais</h3>
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 20px;
+            "
+          >
+            <h2 style="margin: 0">Estatísticas Gerais</h2>
+
+            <!-- Novo Filtro de Modalidade -->
+            <select
+              id="tradeTypeFilter"
+              class="month-selector"
+              style="font-size: 0.9rem"
+            >
+              <option value="todos">Todas as Operações</option>
+              <option value="daytrade">Apenas Day Trade</option>
+              <option value="swingtrade">Apenas Swing Trade</option>
+            </select>
+          </div>
+
           <div class="stats-grid">
             <div class="stat-card">
               <span class="stat-title">OPERAÇÕES</span>

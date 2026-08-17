@@ -140,6 +140,15 @@ document.getElementById("monthSelector").addEventListener("change", (e) => {
   atualizarDashboardVisuais();
 });
 
+// ================= FILTRO ESTATÍSTICAS (DAY TRADE / SWING TRADE) =================
+document.getElementById("tradeTypeFilter").addEventListener("change", () => {
+  // Quando o usuário troca a modalidade, pega as operações do mês visualizado e recalcula!
+  const tradesDoMes = todosOsTrades.filter((t) =>
+    t.date.startsWith(mesVisualizado),
+  );
+  calcularEstatisticas(tradesDoMes);
+});
+
 async function loadDashboardData() {
   todosOsTrades = await db.trades.toArray();
   todosOsTrades.sort(
@@ -986,11 +995,7 @@ window.fecharVisualizador = () => {
 };
 
 // ================= REGRAS DE TRADING =================
-let tradingRules = JSON.parse(localStorage.getItem("tradingRules")) || [
-  "Nunca operar no primeiro candle",
-  "No máximo 3 operações no dia",
-  "Comprar sempre próximo às mínimas do mercado",
-];
+let tradingRules = JSON.parse(localStorage.getItem("tradingRules")) || [];
 
 window.abrirModalRegras = () => {
   document.getElementById("rulesModal").style.display = "flex";
